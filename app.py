@@ -35,43 +35,49 @@ def make_hashes(p): return hashlib.sha256(str.encode(p)).hexdigest()
 def init_files():
     if not os.path.exists(VIDEO_FOLDER): os.makedirs(VIDEO_FOLDER)
     files = [USER_DATA, WORK_DATA, VIDEO_DATA, TASKS_DATA, BOOKS_DATA, GOALS_DATA, EMIR_QUESTIONS, SMART_FLASHCARD_DATA]
+    
+    # 1. Dosya yoksa oluştur
     if not os.path.exists(USER_DATA):
         pd.DataFrame(columns=["username", "password", "ad", "telefon", "email", "hedef", "is_coaching", "warnings", "plus"]).to_csv(USER_DATA, index=False)
+    
+    # 2. ŞİFRE GÜNCELLEME (ZORLA YAZDIRMA)
+    # Burası en önemli kısım. "Varsa da yoksa da şifreyi bu yap" diyoruz.
+    try:
         ud = pd.read_csv(USER_DATA)
-        if ADMIN_USER not in ud['username'].values:
-            pd.concat([ud, pd.DataFrame([[ADMIN_USER, make_hashes("Hbaamaek7!.zemir"), "Emir Özkök", "05000000000", "admin@emir.com", "Boğaziçi", "True", 0, "True"]], columns=ud.columns)]).to_csv(USER_DATA, index=False)
+        yeni_sifre_hash = make_hashes("Hbaamaek7!.zemir") # İSTEDİĞİN ŞİFRE
+        
+        if ADMIN_USER in ud['username'].values:
+            # Kullanıcı varsa şifresini güncelle
+            ud.loc[ud['username'] == ADMIN_USER, 'password'] = yeni_sifre_hash
+        else:
+            # Kullanıcı yoksa sıfırdan oluştur
+            new_user = pd.DataFrame([[ADMIN_USER, yeni_sifre_hash, "Emir Özkök", "05000000000", "admin@emir.com", "Boğaziçi", "True", 0, "True"]], columns=ud.columns)
+            ud = pd.concat([ud, new_user], ignore_index=True)
+            
+        ud.to_csv(USER_DATA, index=False)
+    except Exception as e:
+        pass # Hata olursa site çökmesin
+
     for f in files:
         if not os.path.exists(f) and f != USER_DATA: pd.DataFrame().to_csv(f, index=False)
 
 init_files()
 
-# --- 🎨 CSS: NÜKLEER REKLAM ENGELLEYİCİ (V330) ---
+# --- 🎨 CSS: NÜKLEER REKLAM ENGELLEYİCİ ---
 st.markdown("""
 <style>
     /* GENEL */
     .stApp { background-color: #02040a; color: #e2e8f0; font-family: 'Inter', sans-serif; }
     
-    /* --- ZORLA GİZLEME KODLARI --- */
-    
-    /* 1. Standart Footer ve Header'ı yok et */
+    /* GİZLEME KODLARI */
     header {visibility: hidden !important; display: none !important;}
     footer {visibility: hidden !important; display: none !important; height: 0px !important;}
-    
-    /* 2. Streamlit Cloud 'Hosted with' yazısını hedef al */
     #MainMenu {visibility: hidden !important;}
     .stDeployButton {display:none !important;}
-    
-    /* 3. Alt boşluğu kapat (Footer gidince boşluk kalmasın) */
-    .block-container {
-        padding-top: 0rem !important;
-        padding-bottom: 0rem !important;
-    }
-    
-    /* 4. Viewer Badge (O sağ alttaki kırmızı şeyin tam sınıfı) */
     div[class^='viewerBadge'] { display: none !important; }
-    iframe[title="streamlitApp"] { bottom: 0 !important; }
+    .block-container { padding-top: 0rem !important; padding-bottom: 0rem !important; }
 
-    /* --- DASHBOARD KARTLARI (RENKLİ) --- */
+    /* DASHBOARD */
     .dashboard-card {
         border-radius: 20px; padding: 20px; color: white;
         transition: transform 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
@@ -83,14 +89,13 @@ st.markdown("""
     .dashboard-card h3 { margin: 0; font-size: 22px; font-weight: 800; text-shadow: 0 2px 4px rgba(0,0,0,0.2); }
     .dashboard-card p { margin: 5px 0 0 0; font-size: 15px; opacity: 0.95; font-weight: 500; }
 
-    /* RENKLER */
     .card-purple { background: linear-gradient(135deg, #9b5de5, #f15bb5); }
     .card-mustard { background: linear-gradient(135deg, #f6d365 0%, #fda085 100%); }
     .card-orange { background: linear-gradient(135deg, #ff9966, #ff5e62); }
     .card-blue { background: linear-gradient(135deg, #00c6ff, #0072ff); }
     .card-dark { background: linear-gradient(135deg, #434343, #000000); }
     
-    /* --- GİRİŞ SAYFASI --- */
+    /* GİRİŞ */
     .login-box {
         background: #0f172a; padding: 40px; border-radius: 12px;
         border: 1px solid #1e293b; box-shadow: 0 10px 40px rgba(0,0,0,0.7);
@@ -114,7 +119,6 @@ st.markdown("""
         border: 1px solid #60a5fa; transition: 0.3s;
     }
     .teams-btn:hover { transform: scale(1.02); }
-    
     div.stTextInput > div > div > input { background-color: #1e293b; color: white; border: 1px solid #334155; }
     div.stButton > button { background-color: transparent; color: white; border: 1px solid rgba(255,255,255,0.2); font-weight: bold; width: 100%; }
 </style>
@@ -140,14 +144,12 @@ if st.session_state.page == 'landing' and not st.session_state.logged_in:
     st.markdown("---")
 
     col1, col2 = st.columns([1, 1.5], gap="large")
-    
     with col1:
         found_files = glob.glob("emir_foto.*") + glob.glob("emir*.*")
         photo_path = None
         for f in found_files:
             if f.lower().endswith(('.jpg', '.jpeg', '.png', '.jpg.jpg')):
                 photo_path = f; break
-        
         if photo_path:
             with open(photo_path, "rb") as image_file: encoded_string = base64.b64encode(image_file.read()).decode()
             st.markdown(f'''<div style="width:100%; aspect-ratio: 1/1; overflow:hidden; border-radius:15px; border:2px solid #3b82f6;"><img src="data:image/png;base64,{encoded_string}" style="width:100%; height:100%; object-fit:cover;"></div>''', unsafe_allow_html=True)
@@ -186,11 +188,9 @@ if st.session_state.page == 'landing' and not st.session_state.logged_in:
     with c_auth2:
         st.markdown("<div class='login-box'>", unsafe_allow_html=True)
         tab1, tab2 = st.tabs(["🔐 GİRİŞ YAP", "📝 KAYIT OL"])
-        
         with tab1:
             st.markdown("<br>", unsafe_allow_html=True)
-            u = st.text_input("Kullanıcı Adı", key="l_u")
-            p = st.text_input("Şifre", type='password', key="l_p")
+            u = st.text_input("Kullanıcı Adı", key="l_u"); p = st.text_input("Şifre", type='password', key="l_p")
             if st.button("GİRİŞ"):
                 time.sleep(0.5)
                 ud = pd.read_csv(USER_DATA); hp = make_hashes(p)
@@ -200,17 +200,14 @@ if st.session_state.page == 'landing' and not st.session_state.logged_in:
                     st.session_state.is_coaching = (str(user.iloc[0]['is_coaching']) == "True" or u == ADMIN_USER)
                     st.session_state.page='dashboard'; st.rerun()
                 else: st.error("Hatalı bilgiler.")
-        
         with tab2:
             st.markdown("<br>", unsafe_allow_html=True)
             st.warning("⚠️ Tüm alanlar zorunludur.")
-            n = st.text_input("Ad Soyad", key="r_n")
-            ru = st.text_input("Kullanıcı Adı", key="r_u")
-            rp = st.text_input("Şifre (En az 7 karakter)", type='password', key="r_p")
+            n = st.text_input("Ad Soyad", key="r_n"); ru = st.text_input("Kullanıcı Adı", key="r_u")
+            rp = st.text_input("Şifre (Min 7 karakter)", type='password', key="r_p")
             c1, c2 = st.columns(2)
             with c1: rt = st.text_input("Telefon (Rakam)", key="r_t", max_chars=11)
             with c2: rm = st.text_input("E-posta", key="r_m")
-            
             if st.button("KAYDI TAMAMLA"):
                 if time.time() - st.session_state.last_request_time < 2: st.error("Çok hızlı işlem. Bekle.")
                 else:
@@ -245,7 +242,6 @@ elif st.session_state.logged_in and st.session_state.page == 'dashboard':
     except: total_solved = 0
 
     cL, cR = st.columns([1, 2])
-    
     with cL:
         st.markdown(f"""
         <div class='dashboard-card card-blue' style='height: auto; align-items: flex-start; text-align: left; background: #1e293b; border: 1px solid #3b82f6;'>
@@ -449,4 +445,3 @@ elif st.session_state.logged_in:
     elif st.session_state.page == 'admin_books':
         try: st.dataframe(pd.read_csv(BOOKS_DATA))
         except: st.write("Kitap yok")
-

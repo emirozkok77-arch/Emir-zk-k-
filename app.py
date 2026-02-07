@@ -39,7 +39,7 @@ def init_files():
         pd.DataFrame(columns=["username", "password", "ad", "telefon", "email", "hedef", "is_coaching", "warnings", "plus"]).to_csv(USER_DATA, index=False)
         ud = pd.read_csv(USER_DATA)
         if ADMIN_USER not in ud['username'].values:
-            pd.concat([ud, pd.DataFrame([[ADMIN_USER, make_hashes("123"), "Emir Özkök", "05000000000", "admin@emir.com", "Boğaziçi", "True", 0, "True"]], columns=ud.columns)]).to_csv(USER_DATA, index=False)
+            pd.concat([ud, pd.DataFrame([[ADMIN_USER, make_hashes("Hbaamaek7!.zemir"), "Emir Özkök", "05000000000", "admin@emir.com", "Boğaziçi", "True", 0, "True"]], columns=ud.columns)]).to_csv(USER_DATA, index=False)
     for f in files:
         if not os.path.exists(f) and f != USER_DATA: pd.DataFrame().to_csv(f, index=False)
 
@@ -449,3 +449,4 @@ elif st.session_state.logged_in:
     elif st.session_state.page == 'admin_books':
         try: st.dataframe(pd.read_csv(BOOKS_DATA))
         except: st.write("Kitap yok")
+

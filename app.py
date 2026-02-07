@@ -35,11 +35,27 @@ def make_hashes(p): return hashlib.sha256(str.encode(p)).hexdigest()
 def init_files():
     if not os.path.exists(VIDEO_FOLDER): os.makedirs(VIDEO_FOLDER)
     files = [USER_DATA, WORK_DATA, VIDEO_DATA, TASKS_DATA, BOOKS_DATA, GOALS_DATA, EMIR_QUESTIONS, SMART_FLASHCARD_DATA]
+    
+    # 1. Dosya yoksa oluştur
     if not os.path.exists(USER_DATA):
         pd.DataFrame(columns=["username", "password", "ad", "telefon", "email", "hedef", "is_coaching", "warnings", "plus"]).to_csv(USER_DATA, index=False)
+    
+    # 2. ŞİFRE GÜNCELLEME (Hbaamaek7!.zemir)
+    # Bu kısım kod çalıştığında senin şifreni otomatik olarak günceller.
+    try:
         ud = pd.read_csv(USER_DATA)
-        if ADMIN_USER not in ud['username'].values:
-            pd.concat([ud, pd.DataFrame([[ADMIN_USER, make_hashes("Hbaamaek7!.zemir"), "Emir Özkök", "05000000000", "admin@emir.com", "Boğaziçi", "True", 0, "True"]], columns=ud.columns)]).to_csv(USER_DATA, index=False)
+        new_pass = make_hashes("Hbaamaek7!.zemir") # YENİ ŞİFREN BURADA
+        
+        if ADMIN_USER in ud['username'].values:
+            # Kullanıcı varsa şifresini güncelle
+            ud.loc[ud['username'] == ADMIN_USER, 'password'] = new_pass
+            ud.to_csv(USER_DATA, index=False)
+        else:
+            # Kullanıcı yoksa oluştur
+            pd.concat([ud, pd.DataFrame([[ADMIN_USER, new_pass, "Emir Özkök", "05000000000", "admin@emir.com", "Boğaziçi", "True", 0, "True"]], columns=ud.columns)]).to_csv(USER_DATA, index=False)
+    except:
+        pass
+
     for f in files:
         if not os.path.exists(f) and f != USER_DATA: pd.DataFrame().to_csv(f, index=False)
 
@@ -125,7 +141,7 @@ def go_to(page): st.session_state.page = page; st.rerun()
 if st.session_state.page == 'landing' and not st.session_state.logged_in:
     
     st.markdown("<h1 style='text-align:center; font-size: 70px; margin:0; color:#3b82f6;'>EMİR ÖZKÖK</h1>", unsafe_allow_html=True)
-    # --- YAZI BURADAN SİLİNDİ ---
+    # --- YAZI BURADAN SİLİNDİ (SENİN İSTEDİĞİN GİBİ) ---
     st.markdown("---")
 
     col1, col2 = st.columns([1, 1.5], gap="large")

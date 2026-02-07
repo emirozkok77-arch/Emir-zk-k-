@@ -9,7 +9,6 @@ import time
 st.set_page_config(page_title="Emir Özkök Akademi", layout="wide", page_icon="🧿", initial_sidebar_state="collapsed")
 
 # --- 🏛️ DOSYALAR (YENİ VERİTABANI: users_secure.csv) ---
-# Dosya adını değiştirdim ki eski hatalar gelmesin. TERTEMİZ BAŞLANGIÇ.
 USER_DATA = "users_secure.csv"  
 WORK_DATA = "calisma_verileri.csv"
 VIDEO_DATA = "videolar.csv"
@@ -22,7 +21,6 @@ VIDEO_FOLDER = "ozel_videolar"
 
 # --- YÖNETİCİ BİLGİLERİ ---
 ADMIN_USER = "emirozkok"
-# ŞİFREN BURADA: Hbaamaek7!.zemir
 ADMIN_PASS_RAW = "Hbaamaek7!.zemir" 
 
 # --- 📋 LİSTELER ---
@@ -36,14 +34,13 @@ def init_files():
     files = [WORK_DATA, VIDEO_DATA, TASKS_DATA, BOOKS_DATA, GOALS_DATA, EMIR_QUESTIONS, SMART_FLASHCARD_DATA]
     
     # --- KULLANICI DOSYASI KONTROLÜ ---
-    # Dosya yoksa SIFIRDAN oluştur ve seni ekle
     if not os.path.exists(USER_DATA):
         df = pd.DataFrame(columns=["username", "password", "ad", "telefon", "email", "hedef", "is_coaching", "warnings", "plus"])
         
         # SENİ EKLEYEN KOD
         admin_data = pd.DataFrame([[
             ADMIN_USER, 
-            make_hashes(ADMIN_PASS_RAW), # Şifreni şifreleyip kaydeder
+            make_hashes(ADMIN_PASS_RAW), 
             "Emir Özkök", 
             "05000000000", 
             "admin@emir.com", 
@@ -56,7 +53,6 @@ def init_files():
         df = pd.concat([df, admin_data], ignore_index=True)
         df.to_csv(USER_DATA, index=False)
     
-    # Dosya varsa bile senin şifreni zorla güncelle (GARANTİ YÖNTEM)
     else:
         try:
             ud = pd.read_csv(USER_DATA)
@@ -70,7 +66,7 @@ def init_files():
 
 init_files()
 
-# --- 🎨 CSS (GÖRÜNMEZ EL - REKLAMSIZ) ---
+# --- 🎨 CSS ---
 st.markdown("""
 <style>
     .stApp { background-color: #02040a; color: #e2e8f0; font-family: 'Inter', sans-serif; }
@@ -113,7 +109,7 @@ def go_to(page): st.session_state.page = page; st.rerun()
 if st.session_state.page == 'landing' and not st.session_state.logged_in:
     
     st.markdown("<h1 style='text-align:center; color:#3b82f6;'>EMİR ÖZKÖK</h1>", unsafe_allow_html=True)
-    st.markdown("<p style='text-align:center; color:#94a3b8;'>PRIVATE COACHING SYSTEM</p>", unsafe_allow_html=True)
+    # BURADAKİ YAZIYI SİLDİM
     st.markdown("---")
 
     col1, col2 = st.columns([1, 1], gap="large")

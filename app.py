@@ -9,82 +9,15 @@ import json
 import random
 import glob
 import base64
-import re
 
 # --- SAYFA AYARLARI ---
 st.set_page_config(page_title="Emir Özkök Akademi", layout="wide", page_icon="🧿", initial_sidebar_state="collapsed")
-
-# --- 🎨 CSS: NÜKLEER REKLAM ENGELLEYİCİ ---
-st.markdown("""
-<style>
-    /* GENEL */
-    .stApp { background-color: #02040a; color: #e2e8f0; font-family: 'Inter', sans-serif; }
-    
-    /* --- NÜKLEER GİZLEME (BU KODLAR AFFETMEZ) --- */
-    #MainMenu {visibility: hidden !important;}
-    footer {visibility: hidden !important; display: none !important;}
-    header {visibility: hidden !important; display: none !important;}
-    .stDeployButton {display:none !important;}
-    [data-testid="stToolbar"] {visibility: hidden !important; display: none !important;}
-    [data-testid="stDecoration"] {display:none !important;}
-    [data-testid="stHeader"] {display:none !important;}
-    
-    /* --- YUKARIDAKİ BOŞLUĞU KAPAT --- */
-    .block-container {
-        padding-top: 0rem !important;
-        margin-top: -50px !important;
-    }
-
-    /* --- DASHBOARD KARTLARI (RENKLİ) --- */
-    .dashboard-card {
-        border-radius: 20px; padding: 20px; color: white;
-        transition: transform 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        height: 150px; display: flex; flex-direction: column;
-        justify-content: center; align-items: center; text-align: center;
-        margin-bottom: 10px; border: none;
-    }
-    .dashboard-card:hover { transform: translateY(-5px); box-shadow: 0 10px 15px rgba(0,0,0,0.3); }
-    .dashboard-card h3 { margin: 0; font-size: 22px; font-weight: 800; text-shadow: 0 2px 4px rgba(0,0,0,0.2); }
-    .dashboard-card p { margin: 5px 0 0 0; font-size: 15px; opacity: 0.95; font-weight: 500; }
-
-    /* RENKLER */
-    .card-purple { background: linear-gradient(135deg, #9b5de5, #f15bb5); }
-    .card-mustard { background: linear-gradient(135deg, #f6d365 0%, #fda085 100%); }
-    .card-orange { background: linear-gradient(135deg, #ff9966, #ff5e62); }
-    .card-blue { background: linear-gradient(135deg, #00c6ff, #0072ff); }
-    .card-dark { background: linear-gradient(135deg, #434343, #000000); }
-    
-    /* --- GİRİŞ SAYFASI --- */
-    .login-box {
-        background: #0f172a; padding: 40px; border-radius: 12px;
-        border: 1px solid #1e293b; box-shadow: 0 10px 40px rgba(0,0,0,0.7);
-        margin-top: 20px;
-    }
-    .highlight-box {
-        background: rgba(59, 130, 246, 0.1);
-        border-left: 5px solid #3b82f6; padding: 20px;
-        border-radius: 0 10px 10px 0; margin: 20px 0;
-    }
-    .teams-btn {
-        display: block; width: 100%; padding: 20px;
-        background: linear-gradient(90deg, #2563eb, #1d4ed8);
-        color: white !important; text-align: center; border-radius: 8px;
-        text-decoration: none; font-weight: bold; font-size: 20px;
-        border: 1px solid #60a5fa; transition: 0.3s;
-    }
-    .teams-btn:hover { transform: scale(1.02); }
-    
-    div.stTextInput > div > div > input { background-color: #1e293b; color: white; border: 1px solid #334155; }
-    div.stButton > button { background-color: transparent; color: white; border: 1px solid rgba(255,255,255,0.2); font-weight: bold; width: 100%; }
-</style>
-""", unsafe_allow_html=True)
 
 # --- 🏛️ DOSYALAR ---
 USER_DATA = "users.csv"; WORK_DATA = "calisma_verileri.csv"; VIDEO_DATA = "videolar.csv"
 TASKS_DATA = "odevler.csv"; BOOKS_DATA = "ogrenci_kitaplari.csv"; GOALS_DATA = "hedefler.csv"
 EMIR_QUESTIONS = "emire_gelen_sorular.csv"; SMART_FLASHCARD_DATA = "akilli_kartlar.csv"
-VIDEO_FOLDER = "ozel_videolar"
-ADMIN_USER = "emirozkok"
+VIDEO_FOLDER = "ozel_videolar"; ADMIN_USER = "emirozkok"
 
 # --- 📋 MÜFREDAT ---
 CIZELGE_DETAY = {
@@ -112,6 +45,81 @@ def init_files():
 
 init_files()
 
+# --- 🎨 CSS: NÜKLEER REKLAM ENGELLEYİCİ (V330) ---
+st.markdown("""
+<style>
+    /* GENEL */
+    .stApp { background-color: #02040a; color: #e2e8f0; font-family: 'Inter', sans-serif; }
+    
+    /* --- ZORLA GİZLEME KODLARI --- */
+    
+    /* 1. Standart Footer ve Header'ı yok et */
+    header {visibility: hidden !important; display: none !important;}
+    footer {visibility: hidden !important; display: none !important; height: 0px !important;}
+    
+    /* 2. Streamlit Cloud 'Hosted with' yazısını hedef al */
+    #MainMenu {visibility: hidden !important;}
+    .stDeployButton {display:none !important;}
+    
+    /* 3. Alt boşluğu kapat (Footer gidince boşluk kalmasın) */
+    .block-container {
+        padding-top: 0rem !important;
+        padding-bottom: 0rem !important;
+    }
+    
+    /* 4. Viewer Badge (O sağ alttaki kırmızı şeyin tam sınıfı) */
+    div[class^='viewerBadge'] { display: none !important; }
+    iframe[title="streamlitApp"] { bottom: 0 !important; }
+
+    /* --- DASHBOARD KARTLARI (RENKLİ) --- */
+    .dashboard-card {
+        border-radius: 20px; padding: 20px; color: white;
+        transition: transform 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        height: 150px; display: flex; flex-direction: column;
+        justify-content: center; align-items: center; text-align: center;
+        margin-bottom: 10px; border: none;
+    }
+    .dashboard-card:hover { transform: translateY(-5px); box-shadow: 0 10px 15px rgba(0,0,0,0.3); }
+    .dashboard-card h3 { margin: 0; font-size: 22px; font-weight: 800; text-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+    .dashboard-card p { margin: 5px 0 0 0; font-size: 15px; opacity: 0.95; font-weight: 500; }
+
+    /* RENKLER */
+    .card-purple { background: linear-gradient(135deg, #9b5de5, #f15bb5); }
+    .card-mustard { background: linear-gradient(135deg, #f6d365 0%, #fda085 100%); }
+    .card-orange { background: linear-gradient(135deg, #ff9966, #ff5e62); }
+    .card-blue { background: linear-gradient(135deg, #00c6ff, #0072ff); }
+    .card-dark { background: linear-gradient(135deg, #434343, #000000); }
+    
+    /* --- GİRİŞ SAYFASI --- */
+    .login-box {
+        background: #0f172a; padding: 40px; border-radius: 12px;
+        border: 1px solid #1e293b; box-shadow: 0 10px 40px rgba(0,0,0,0.7);
+        margin-top: 20px;
+    }
+    .square-img {
+        width: 100%; aspect-ratio: 1 / 1; object-fit: cover;
+        border-radius: 15px; border: 2px solid #3b82f6;
+        box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+    }
+    .highlight-box {
+        background: rgba(59, 130, 246, 0.1);
+        border-left: 5px solid #3b82f6; padding: 20px;
+        border-radius: 0 10px 10px 0; margin: 20px 0;
+    }
+    .teams-btn {
+        display: block; width: 100%; padding: 20px;
+        background: linear-gradient(90deg, #2563eb, #1d4ed8);
+        color: white !important; text-align: center; border-radius: 8px;
+        text-decoration: none; font-weight: bold; font-size: 20px;
+        border: 1px solid #60a5fa; transition: 0.3s;
+    }
+    .teams-btn:hover { transform: scale(1.02); }
+    
+    div.stTextInput > div > div > input { background-color: #1e293b; color: white; border: 1px solid #334155; }
+    div.stButton > button { background-color: transparent; color: white; border: 1px solid rgba(255,255,255,0.2); font-weight: bold; width: 100%; }
+</style>
+""", unsafe_allow_html=True)
+
 # --- SESSION ---
 if 'page' not in st.session_state: st.session_state.page = 'landing'
 if 'logged_in' not in st.session_state: st.session_state.logged_in = False
@@ -127,18 +135,19 @@ def go_to(page): st.session_state.page = page; st.rerun()
 # ==========================================
 if st.session_state.page == 'landing' and not st.session_state.logged_in:
     
-    st.markdown("<br><br>", unsafe_allow_html=True)
     st.markdown("<h1 style='text-align:center; font-size: 70px; margin:0; color:#3b82f6;'>EMİR ÖZKÖK</h1>", unsafe_allow_html=True)
     st.markdown("<p style='text-align:center; color:#94a3b8; font-size:18px; letter-spacing:4px;'>PRIVATE COACHING & MANAGEMENT SYSTEM</p>", unsafe_allow_html=True)
     st.markdown("---")
 
     col1, col2 = st.columns([1, 1.5], gap="large")
+    
     with col1:
         found_files = glob.glob("emir_foto.*") + glob.glob("emir*.*")
         photo_path = None
         for f in found_files:
             if f.lower().endswith(('.jpg', '.jpeg', '.png', '.jpg.jpg')):
                 photo_path = f; break
+        
         if photo_path:
             with open(photo_path, "rb") as image_file: encoded_string = base64.b64encode(image_file.read()).decode()
             st.markdown(f'''<div style="width:100%; aspect-ratio: 1/1; overflow:hidden; border-radius:15px; border:2px solid #3b82f6;"><img src="data:image/png;base64,{encoded_string}" style="width:100%; height:100%; object-fit:cover;"></div>''', unsafe_allow_html=True)
@@ -154,7 +163,8 @@ if st.session_state.page == 'landing' and not st.session_state.logged_in:
         </p>
         <div class="highlight-box">
             <span style='font-size:24px; font-weight:bold; color:#e2e8f0;'>
-            SINAV SÜRECİNDEKİ ÇEKTİĞİM SORUNLARI <br> <span style='color:#3b82f6;'>SİZLER İÇİN ÇÖZDÜM.</span>
+            SINAV SÜRECİNDEKİ ÇEKTİĞİM SORUNLARI <br> 
+            <span style='color:#3b82f6;'>SİZLER İÇİN ÇÖZDÜM.</span>
             </span>
         </div>
         <p style='font-size:16px; font-style:italic; color:#64748b;'>
@@ -176,9 +186,11 @@ if st.session_state.page == 'landing' and not st.session_state.logged_in:
     with c_auth2:
         st.markdown("<div class='login-box'>", unsafe_allow_html=True)
         tab1, tab2 = st.tabs(["🔐 GİRİŞ YAP", "📝 KAYIT OL"])
+        
         with tab1:
             st.markdown("<br>", unsafe_allow_html=True)
-            u = st.text_input("Kullanıcı Adı", key="l_u"); p = st.text_input("Şifre", type='password', key="l_p")
+            u = st.text_input("Kullanıcı Adı", key="l_u")
+            p = st.text_input("Şifre", type='password', key="l_p")
             if st.button("GİRİŞ"):
                 time.sleep(0.5)
                 ud = pd.read_csv(USER_DATA); hp = make_hashes(p)
@@ -188,16 +200,19 @@ if st.session_state.page == 'landing' and not st.session_state.logged_in:
                     st.session_state.is_coaching = (str(user.iloc[0]['is_coaching']) == "True" or u == ADMIN_USER)
                     st.session_state.page='dashboard'; st.rerun()
                 else: st.error("Hatalı bilgiler.")
+        
         with tab2:
             st.markdown("<br>", unsafe_allow_html=True)
             st.warning("⚠️ Tüm alanlar zorunludur.")
-            n = st.text_input("Ad Soyad", key="r_n"); ru = st.text_input("Kullanıcı Adı", key="r_u")
-            rp = st.text_input("Şifre (Min 7 karakter)", type='password', key="r_p")
+            n = st.text_input("Ad Soyad", key="r_n")
+            ru = st.text_input("Kullanıcı Adı", key="r_u")
+            rp = st.text_input("Şifre (En az 7 karakter)", type='password', key="r_p")
             c1, c2 = st.columns(2)
             with c1: rt = st.text_input("Telefon (Rakam)", key="r_t", max_chars=11)
             with c2: rm = st.text_input("E-posta", key="r_m")
+            
             if st.button("KAYDI TAMAMLA"):
-                if time.time() - st.session_state.last_request_time < 2: st.error("Çok hızlı işlem. Bekle."); 
+                if time.time() - st.session_state.last_request_time < 2: st.error("Çok hızlı işlem. Bekle.")
                 else:
                     st.session_state.last_request_time = time.time()
                     if not n or not ru or not rp or not rt or not rm: st.error("Boş alan bırakma.")
@@ -230,6 +245,7 @@ elif st.session_state.logged_in and st.session_state.page == 'dashboard':
     except: total_solved = 0
 
     cL, cR = st.columns([1, 2])
+    
     with cL:
         st.markdown(f"""
         <div class='dashboard-card card-blue' style='height: auto; align-items: flex-start; text-align: left; background: #1e293b; border: 1px solid #3b82f6;'>
@@ -421,7 +437,6 @@ elif st.session_state.logged_in:
                     if c_b.button("Sıradaki"): st.session_state.card_index+=1; st.session_state.show_answer=False; st.rerun()
             except: st.write("Kart yok")
 
-    # Admin Ekstra
     elif st.session_state.page == 'admin_users':
         ud = pd.read_csv(USER_DATA)
         edited = st.data_editor(ud)

@@ -28,6 +28,7 @@ CIZELGE_DETAY = {
     "GEOMETRİ": ["Üçgenler", "Çokgenler", "Dörtgenler", "Çember-Daire", "Analitik", "Katı Cisimler"]
 }
 FLASHCARD_DERSLER = ["TYT Matematik", "AYT Matematik", "Geometri", "TYT Fizik", "AYT Fizik", "TYT Kimya", "AYT Kimya", "TYT Biyoloji", "AYT Biyoloji", "TYT Türkçe", "AYT Edebiyat", "Tarih", "Coğrafya"]
+HEDEFLER_LISTESI = ["Tıp", "Mühendislik", "Diş Hekimliği", "Hukuk", "Psikoloji", "Yazılım/Bilgisayar", "Mimarlık", "Pilotaj", "Eczacılık", "Diğer"]
 
 # --- FONKSİYONLAR ---
 def make_hashes(p): return hashlib.sha256(str.encode(p)).hexdigest()
@@ -36,48 +37,35 @@ def init_files():
     if not os.path.exists(VIDEO_FOLDER): os.makedirs(VIDEO_FOLDER)
     files = [USER_DATA, WORK_DATA, VIDEO_DATA, TASKS_DATA, BOOKS_DATA, GOALS_DATA, EMIR_QUESTIONS, SMART_FLASHCARD_DATA]
     
-    # 1. Dosya yoksa oluştur
     if not os.path.exists(USER_DATA):
         pd.DataFrame(columns=["username", "password", "ad", "telefon", "email", "hedef", "is_coaching", "warnings", "plus"]).to_csv(USER_DATA, index=False)
     
-    # 2. ŞİFRE GÜNCELLEME (ZORLA YAZDIRMA)
-    # Burası en önemli kısım. "Varsa da yoksa da şifreyi bu yap" diyoruz.
+    # --- ADMIN ŞİFRE GÜNCELLEME (Check) ---
     try:
         ud = pd.read_csv(USER_DATA)
-        yeni_sifre_hash = make_hashes("Hbaamaek7!.zemir") # İSTEDİĞİN ŞİFRE
+        # Senin istediğin şifre: Hbaamaek7!.zemir
+        new_pass = make_hashes("Hbaamaek7!.zemir")
         
         if ADMIN_USER in ud['username'].values:
-            # Kullanıcı varsa şifresini güncelle
-            ud.loc[ud['username'] == ADMIN_USER, 'password'] = yeni_sifre_hash
+            ud.loc[ud['username'] == ADMIN_USER, 'password'] = new_pass
         else:
-            # Kullanıcı yoksa sıfırdan oluştur
-            new_user = pd.DataFrame([[ADMIN_USER, yeni_sifre_hash, "Emir Özkök", "05000000000", "admin@emir.com", "Boğaziçi", "True", 0, "True"]], columns=ud.columns)
+            new_user = pd.DataFrame([[ADMIN_USER, new_pass, "Emir Özkök", "05000000000", "admin@emir.com", "Mühendislik", "True", 0, "True"]], columns=ud.columns)
             ud = pd.concat([ud, new_user], ignore_index=True)
-            
         ud.to_csv(USER_DATA, index=False)
-    except Exception as e:
-        pass # Hata olursa site çökmesin
+    except: pass
 
     for f in files:
         if not os.path.exists(f) and f != USER_DATA: pd.DataFrame().to_csv(f, index=False)
 
 init_files()
 
-# --- 🎨 CSS: NÜKLEER REKLAM ENGELLEYİCİ ---
+# --- 🎨 CSS ---
 st.markdown("""
 <style>
-    /* GENEL */
     .stApp { background-color: #02040a; color: #e2e8f0; font-family: 'Inter', sans-serif; }
-    
-    /* GİZLEME KODLARI */
-    header {visibility: hidden !important; display: none !important;}
-    footer {visibility: hidden !important; display: none !important; height: 0px !important;}
-    #MainMenu {visibility: hidden !important;}
-    .stDeployButton {display:none !important;}
-    div[class^='viewerBadge'] { display: none !important; }
+    header, footer, #MainMenu, .stDeployButton, div[class^='viewerBadge'] {display: none !important;}
     .block-container { padding-top: 0rem !important; padding-bottom: 0rem !important; }
 
-    /* DASHBOARD */
     .dashboard-card {
         border-radius: 20px; padding: 20px; color: white;
         transition: transform 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
@@ -95,16 +83,10 @@ st.markdown("""
     .card-blue { background: linear-gradient(135deg, #00c6ff, #0072ff); }
     .card-dark { background: linear-gradient(135deg, #434343, #000000); }
     
-    /* GİRİŞ */
     .login-box {
         background: #0f172a; padding: 40px; border-radius: 12px;
         border: 1px solid #1e293b; box-shadow: 0 10px 40px rgba(0,0,0,0.7);
         margin-top: 20px;
-    }
-    .square-img {
-        width: 100%; aspect-ratio: 1 / 1; object-fit: cover;
-        border-radius: 15px; border: 2px solid #3b82f6;
-        box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
     }
     .highlight-box {
         background: rgba(59, 130, 246, 0.1);
@@ -119,7 +101,7 @@ st.markdown("""
         border: 1px solid #60a5fa; transition: 0.3s;
     }
     .teams-btn:hover { transform: scale(1.02); }
-    div.stTextInput > div > div > input { background-color: #1e293b; color: white; border: 1px solid #334155; }
+    div.stTextInput > div > div > input, div.stSelectbox > div > button { background-color: #1e293b; color: white; border: 1px solid #334155; }
     div.stButton > button { background-color: transparent; color: white; border: 1px solid rgba(255,255,255,0.2); font-weight: bold; width: 100%; }
 </style>
 """, unsafe_allow_html=True)
@@ -205,11 +187,15 @@ if st.session_state.page == 'landing' and not st.session_state.logged_in:
             st.warning("⚠️ Tüm alanlar zorunludur.")
             n = st.text_input("Ad Soyad", key="r_n"); ru = st.text_input("Kullanıcı Adı", key="r_u")
             rp = st.text_input("Şifre (Min 7 karakter)", type='password', key="r_p")
-            c1, c2 = st.columns(2)
-            with c1: rt = st.text_input("Telefon (Rakam)", key="r_t", max_chars=11)
-            with c2: rm = st.text_input("E-posta", key="r_m")
+            
+            c_h1, c_h2 = st.columns(2)
+            with c_h1: rh = st.selectbox("Hedefin (Bölüm)", HEDEFLER_LISTESI, key="r_h")
+            with c_h2: rt = st.text_input("Telefon (Rakam)", key="r_t", max_chars=11)
+            
+            rm = st.text_input("E-posta", key="r_m")
+            
             if st.button("KAYDI TAMAMLA"):
-                if time.time() - st.session_state.last_request_time < 2: st.error("Çok hızlı işlem. Bekle.")
+                if time.time() - st.session_state.last_request_time < 2: st.error("Çok hızlı işlem.")
                 else:
                     st.session_state.last_request_time = time.time()
                     if not n or not ru or not rp or not rt or not rm: st.error("Boş alan bırakma.")
@@ -219,7 +205,8 @@ if st.session_state.page == 'landing' and not st.session_state.logged_in:
                     else:
                         ud=pd.read_csv(USER_DATA)
                         if ru not in ud['username'].values:
-                            pd.concat([ud,pd.DataFrame([[ru,make_hashes(rp),n,rt,rm,"Boğaziçi","False",0,"False"]],columns=ud.columns)],ignore_index=True).to_csv(USER_DATA,index=False)
+                            # HEDEFİ DE KAYDEDİYORUZ ARTIK
+                            pd.concat([ud,pd.DataFrame([[ru,make_hashes(rp),n,rt,rm,rh,"False",0,"False"]],columns=ud.columns)],ignore_index=True).to_csv(USER_DATA,index=False)
                             st.success("Kayıt Başarılı!"); time.sleep(1)
                         else: st.error("Kullanıcı adı alınmış.")
         st.markdown("</div>", unsafe_allow_html=True)
@@ -230,10 +217,14 @@ if st.session_state.page == 'landing' and not st.session_state.logged_in:
 # ==========================================
 elif st.session_state.logged_in and st.session_state.page == 'dashboard':
     
-    c_head, c_btn = st.columns([9, 1])
+    c_head, c_btn = st.columns([8, 2])
     with c_head: st.markdown(f"## 👋 {st.session_state.realname}")
     with c_btn: 
-        if st.button("ÇIKIŞ"): st.session_state.logged_in=False; st.rerun()
+        c_b1, c_b2 = st.columns(2)
+        with c_b1: 
+            if st.button("⚙️"): go_to('settings')
+        with c_b2:
+            if st.button("ÇIKIŞ"): st.session_state.logged_in=False; st.rerun()
     st.markdown("---")
 
     try:
@@ -316,7 +307,43 @@ elif st.session_state.logged_in:
     with c_back: 
         if st.button("⬅️", key="nav_back"): go_to('dashboard')
     
-    if st.session_state.page == 'stats':
+    # --- YENİ SAYFA: AYARLAR ---
+    if st.session_state.page == 'settings':
+        st.header("⚙️ HESAP AYARLARI")
+        
+        ud = pd.read_csv(USER_DATA)
+        # Mevcut kullanıcının satırını bul
+        current_user = ud[ud['username'] == st.session_state.username].iloc[0]
+        
+        with st.form("settings_form"):
+            new_name = st.text_input("Ad Soyad", value=current_user['ad'])
+            new_goal = st.selectbox("Hedefin", HEDEFLER_LISTESI, index=HEDEFLER_LISTESI.index(current_user['hedef']) if current_user['hedef'] in HEDEFLER_LISTESI else 0)
+            new_phone = st.text_input("Telefon", value=str(current_user['telefon']))
+            new_email = st.text_input("E-posta", value=current_user['email'])
+            new_pass = st.text_input("Yeni Şifre (Değiştirmek istemiyorsan boş bırak)", type='password')
+            
+            if st.form_submit_button("KAYDET VE GÜNCELLE"):
+                # Verileri güncelle
+                idx = ud[ud['username'] == st.session_state.username].index[0]
+                ud.at[idx, 'ad'] = new_name
+                ud.at[idx, 'hedef'] = new_goal
+                ud.at[idx, 'telefon'] = new_phone
+                ud.at[idx, 'email'] = new_email
+                
+                if new_pass and len(new_pass) >= 7:
+                    ud.at[idx, 'password'] = make_hashes(new_pass)
+                    st.success("Şifre ve bilgiler güncellendi!")
+                elif new_pass and len(new_pass) < 7:
+                    st.error("Şifre en az 7 karakter olmalı! (Diğer bilgiler güncellendi)")
+                else:
+                    st.success("Bilgiler güncellendi!")
+                
+                ud.to_csv(USER_DATA, index=False)
+                st.session_state.realname = new_name
+                time.sleep(1)
+                st.rerun()
+
+    elif st.session_state.page == 'stats':
         st.header("📊 PERFORMANS VE ANALİZ")
         df = pd.read_csv(WORK_DATA)
         my_data = df[df['username'] == st.session_state.username]

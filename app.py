@@ -9,6 +9,7 @@ import json
 import random
 import glob
 import base64
+import re # Güvenlik kontrolleri için eklendi
 
 # --- SAYFA AYARLARI ---
 st.set_page_config(page_title="Emir Özkök Akademi", layout="wide", page_icon="🧿", initial_sidebar_state="collapsed")
@@ -17,7 +18,10 @@ st.set_page_config(page_title="Emir Özkök Akademi", layout="wide", page_icon="
 USER_DATA = "users.csv"; WORK_DATA = "calisma_verileri.csv"; VIDEO_DATA = "videolar.csv"
 TASKS_DATA = "odevler.csv"; BOOKS_DATA = "ogrenci_kitaplari.csv"; GOALS_DATA = "hedefler.csv"
 EMIR_QUESTIONS = "emire_gelen_sorular.csv"; SMART_FLASHCARD_DATA = "akilli_kartlar.csv"
-VIDEO_FOLDER = "ozel_videolar"; ADMIN_USER = "emirozkokk"
+VIDEO_FOLDER = "ozel_videolar"
+
+# --- 👑 YENİ HOST ---
+ADMIN_USER = "emirozkok" 
 
 # --- 📋 MÜFREDAT ---
 CIZELGE_DETAY = {
@@ -32,25 +36,38 @@ FLASHCARD_DERSLER = ["TYT Matematik", "AYT Matematik", "Geometri", "TYT Fizik", 
 # --- FONKSİYONLAR ---
 def make_hashes(p): return hashlib.sha256(str.encode(p)).hexdigest()
 
+def check_email(email):
+    regex = r'^[a-z0-9]+[\._]?[a-z0-9]+[@]\w+[.]\w{2,3}$'
+    return re.search(regex, email)
+
 def init_files():
     if not os.path.exists(VIDEO_FOLDER): os.makedirs(VIDEO_FOLDER)
     files = [USER_DATA, WORK_DATA, VIDEO_DATA, TASKS_DATA, BOOKS_DATA, GOALS_DATA, EMIR_QUESTIONS, SMART_FLASHCARD_DATA]
+    
+    # User data kontrolü ve Admin oluşturma
     if not os.path.exists(USER_DATA):
         pd.DataFrame(columns=["username", "password", "ad", "telefon", "email", "hedef", "is_coaching", "warnings", "plus"]).to_csv(USER_DATA, index=False)
         ud = pd.read_csv(USER_DATA)
-        pd.concat([ud, pd.DataFrame([["emirozkokk", make_hashes("123"), "Emir Özkök", "", "", "Boğaziçi", "True", 0, "True"]], columns=ud.columns)]).to_csv(USER_DATA, index=False)
+        # Eğer admin yoksa ekle
+        if ADMIN_USER not in ud['username'].values:
+            pd.concat([ud, pd.DataFrame([[ADMIN_USER, make_hashes("123"), "Emir Özkök", "05000000000", "admin@emir.com", "Boğaziçi", "True", 0, "True"]], columns=ud.columns)]).to_csv(USER_DATA, index=False)
+    
     for f in files:
         if not os.path.exists(f) and f != USER_DATA: pd.DataFrame().to_csv(f, index=False)
 
 init_files()
 
-# --- 🎨 CSS (RENKLİ KARTLAR + CİDDİ GİRİŞ) ---
+# --- 🎨 CSS (GÜVENLİK & TASARIM) ---
 st.markdown("""
 <style>
-    /* GENEL */
     .stApp { background-color: #02040a; color: #e2e8f0; font-family: 'Inter', sans-serif; }
     
-    /* --- DASHBOARD KARTLARI (RENKLİ GERİ GELDİ) --- */
+    /* GİZLİLİK */
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    header {visibility: hidden;}
+    
+    /* DASHBOARD KARTLARI */
     .dashboard-card {
         border-radius: 20px; padding: 20px; color: white;
         transition: transform 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
@@ -62,37 +79,29 @@ st.markdown("""
     .dashboard-card h3 { margin: 0; font-size: 22px; font-weight: 800; text-shadow: 0 2px 4px rgba(0,0,0,0.2); }
     .dashboard-card p { margin: 5px 0 0 0; font-size: 15px; opacity: 0.95; font-weight: 500; }
 
-    /* CANLI RENKLER */
-    .card-purple { background: linear-gradient(135deg, #9b5de5, #f15bb5); } /* Daha canlı mor */
-    .card-mustard { background: linear-gradient(135deg, #f6d365 0%, #fda085 100%); } /* Hardal */
-    .card-orange { background: linear-gradient(135deg, #ff9966, #ff5e62); } /* Turuncu */
-    .card-blue { background: linear-gradient(135deg, #00c6ff, #0072ff); } /* Mavi */
-    .card-dark { background: linear-gradient(135deg, #434343, #000000); } /* Siyah */
+    /* RENKLER */
+    .card-purple { background: linear-gradient(135deg, #9b5de5, #f15bb5); }
+    .card-mustard { background: linear-gradient(135deg, #f6d365 0%, #fda085 100%); }
+    .card-orange { background: linear-gradient(135deg, #ff9966, #ff5e62); }
+    .card-blue { background: linear-gradient(135deg, #00c6ff, #0072ff); }
+    .card-dark { background: linear-gradient(135deg, #434343, #000000); }
     
-    /* --- GİRİŞ SAYFASI ÖZEL --- */
+    /* GİRİŞ SAYFASI */
     .login-box {
         background: #0f172a; padding: 40px; border-radius: 12px;
         border: 1px solid #1e293b; box-shadow: 0 10px 40px rgba(0,0,0,0.7);
         margin-top: 20px;
     }
-    
-    /* KARE RESİM FORMATI */
-    .profile-pic {
-        width: 100%;
-        border-radius: 15px;
-        border: 2px solid #3b82f6;
+    .square-img {
+        width: 100%; aspect-ratio: 1 / 1; object-fit: cover;
+        border-radius: 15px; border: 2px solid #3b82f6;
         box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
     }
-
-    /* VURGULU YAZI */
     .highlight-box {
         background: rgba(59, 130, 246, 0.1);
-        border-left: 5px solid #3b82f6;
-        padding: 20px;
-        border-radius: 0 10px 10px 0;
-        margin: 20px 0;
+        border-left: 5px solid #3b82f6; padding: 20px;
+        border-radius: 0 10px 10px 0; margin: 20px 0;
     }
-    
     .teams-btn {
         display: block; width: 100%; padding: 20px;
         background: linear-gradient(90deg, #2563eb, #1d4ed8);
@@ -102,7 +111,6 @@ st.markdown("""
     }
     .teams-btn:hover { transform: scale(1.02); }
     
-    /* ELEMENTLER */
     div.stTextInput > div > div > input { background-color: #1e293b; color: white; border: 1px solid #334155; }
     div.stButton > button { background-color: transparent; color: white; border: 1px solid rgba(255,255,255,0.2); font-weight: bold; width: 100%; }
 </style>
@@ -114,20 +122,20 @@ if 'logged_in' not in st.session_state: st.session_state.logged_in = False
 if 'timer_active' not in st.session_state: st.session_state.timer_active = False
 if 'elapsed_time' not in st.session_state: st.session_state.elapsed_time = 0
 if 'start_time' not in st.session_state: st.session_state.start_time = 0
+if 'last_request_time' not in st.session_state: st.session_state.last_request_time = 0 # Anti-Spam
 
 def go_to(page): st.session_state.page = page; st.rerun()
 
 # ==========================================
-# 1. LANDING PAGE (SAĞLAMLAŞTIRILMIŞ)
+# 1. LANDING PAGE
 # ==========================================
 if st.session_state.page == 'landing' and not st.session_state.logged_in:
     
-    # BAŞLIK
     st.markdown("<h1 style='text-align:center; font-size: 70px; margin:0; color:#3b82f6;'>EMİR ÖZKÖK</h1>", unsafe_allow_html=True)
     st.markdown("<p style='text-align:center; color:#94a3b8; font-size:18px; letter-spacing:4px;'>PRIVATE COACHING & MANAGEMENT SYSTEM</p>", unsafe_allow_html=True)
     st.markdown("---")
 
-    # VİZYON KISMI (Native Columns ile Hata Riskini Sıfırladık)
+    # VİZYON
     col1, col2 = st.columns([1, 1.5], gap="large")
     
     with col1:
@@ -138,16 +146,11 @@ if st.session_state.page == 'landing' and not st.session_state.logged_in:
                 photo_path = f; break
         
         if photo_path:
-            # Resmi HTML ile kareye zorluyoruz
             with open(photo_path, "rb") as image_file:
                 encoded_string = base64.b64encode(image_file.read()).decode()
-            st.markdown(f'''
-                <div style="width:100%; aspect-ratio: 1/1; overflow:hidden; border-radius:15px; border:2px solid #3b82f6;">
-                    <img src="data:image/png;base64,{encoded_string}" style="width:100%; height:100%; object-fit:cover;">
-                </div>
-            ''', unsafe_allow_html=True)
+            st.markdown(f'''<div style="width:100%; aspect-ratio: 1/1; overflow:hidden; border-radius:15px; border:2px solid #3b82f6;"><img src="data:image/png;base64,{encoded_string}" style="width:100%; height:100%; object-fit:cover;"></div>''', unsafe_allow_html=True)
         else:
-            st.warning("Fotoğraf yok. Yükle:")
+            st.warning("Fotoğraf yok.")
             st.file_uploader("Yükle", type=['jpg'])
 
     with col2:
@@ -180,7 +183,7 @@ if st.session_state.page == 'landing' and not st.session_state.logged_in:
 
     st.markdown("<br><hr style='border-color:#334155;'><br>", unsafe_allow_html=True)
 
-    # GİRİŞ & KAYIT
+    # GİRİŞ & KAYIT (GÜVENLİK MODU AKTİF)
     c_auth1, c_auth2, c_auth3 = st.columns([1, 2, 1])
     with c_auth2:
         st.markdown("<div class='login-box'>", unsafe_allow_html=True)
@@ -191,32 +194,56 @@ if st.session_state.page == 'landing' and not st.session_state.logged_in:
             u = st.text_input("Kullanıcı Adı", key="l_u")
             p = st.text_input("Şifre", type='password', key="l_p")
             if st.button("GİRİŞ"):
+                # Anti-Spam Delay
+                time.sleep(0.5)
                 ud = pd.read_csv(USER_DATA); hp = make_hashes(p)
                 user = ud[(ud['username']==u) & (ud['password']==hp)]
                 if not user.empty:
                     st.session_state.logged_in=True; st.session_state.username=u; st.session_state.realname=user.iloc[0]['ad']
                     st.session_state.is_coaching = (str(user.iloc[0]['is_coaching']) == "True" or u == ADMIN_USER)
                     st.session_state.page='dashboard'; st.rerun()
-                else: st.error("Hatalı giriş.")
+                else: st.error("Hatalı bilgiler.")
         
         with tab2:
             st.markdown("<br>", unsafe_allow_html=True)
-            n = st.text_input("Ad Soyad", key="r_n"); ru = st.text_input("Kullanıcı Adı", key="r_u")
-            rp = st.text_input("Şifre", type='password', key="r_p")
+            st.warning("⚠️ Tüm alanlar zorunludur. Yanlış bilgi sistemden silinir.")
+            n = st.text_input("Ad Soyad", key="r_n")
+            ru = st.text_input("Kullanıcı Adı", key="r_u")
+            rp = st.text_input("Şifre (En az 7 karakter)", type='password', key="r_p")
             c1, c2 = st.columns(2)
-            with c1: rt = st.text_input("Telefon", key="r_t")
-            with c2: rm = st.text_input("E-posta", key="r_m")
-            if st.button("KAYDOL"):
-                ud=pd.read_csv(USER_DATA)
-                if ru not in ud['username'].values and ru!="":
-                    pd.concat([ud,pd.DataFrame([[ru,make_hashes(rp),n,rt,rm,"Boğaziçi","False",0,"False"]],columns=ud.columns)],ignore_index=True).to_csv(USER_DATA,index=False)
-                    st.success("Kayıt Başarılı!")
-                else: st.error("Kullanıcı adı dolu.")
+            with c1: rt = st.text_input("Telefon (Başında 0 olmadan)", key="r_t", max_chars=11)
+            with c2: rm = st.text_input("E-posta (Örn: isim@mail.com)", key="r_m")
+            
+            if st.button("KAYDI TAMAMLA"):
+                # --- GÜVENLİK KONTROLLERİ ---
+                current_time = time.time()
+                if current_time - st.session_state.last_request_time < 2:
+                    st.error("⏳ Çok hızlı işlem yapıyorsunuz. Lütfen bekleyin.")
+                else:
+                    st.session_state.last_request_time = current_time
+                    
+                    if not n or not ru or not rp or not rt or not rm:
+                        st.error("❌ Lütfen tüm alanları doldurun.")
+                    elif len(rp) < 7:
+                        st.error("⚠️ Şifre en az 7 karakter olmalıdır.")
+                    elif not rt.isdigit() or len(rt) < 10:
+                        st.error("⚠️ Geçersiz telefon numarası. Sadece rakam giriniz.")
+                    elif "@" not in rm or "." not in rm:
+                        st.error("⚠️ Geçersiz e-posta adresi.")
+                    else:
+                        ud=pd.read_csv(USER_DATA)
+                        if ru not in ud['username'].values:
+                            try:
+                                pd.concat([ud,pd.DataFrame([[ru,make_hashes(rp),n,rt,rm,"Boğaziçi","False",0,"False"]],columns=ud.columns)],ignore_index=True).to_csv(USER_DATA,index=False)
+                                st.success("✅ Kayıt Başarılı! Giriş yapabilirsiniz.")
+                            except Exception as e:
+                                st.error("Sistem hatası. Lütfen daha sonra deneyin.")
+                        else: st.error("❌ Bu kullanıcı adı alınmış.")
         st.markdown("</div>", unsafe_allow_html=True)
     st.markdown("<br><br>", unsafe_allow_html=True)
 
 # ==========================================
-# 2. DASHBOARD (RENKLİ + İSTATİSTİK)
+# 2. DASHBOARD
 # ==========================================
 elif st.session_state.logged_in and st.session_state.page == 'dashboard':
     
@@ -226,7 +253,7 @@ elif st.session_state.logged_in and st.session_state.page == 'dashboard':
         if st.button("ÇIKIŞ"): st.session_state.logged_in=False; st.rerun()
     st.markdown("---")
 
-    # --- TOPLAM SORU SAYISINI HESAPLA ---
+    # --- ÖĞRENCİ İSTATİSTİK HESABI ---
     try:
         df_w = pd.read_csv(WORK_DATA)
         total_solved = df_w[df_w['username'] == st.session_state.username]['Soru'].sum()
@@ -235,7 +262,6 @@ elif st.session_state.logged_in and st.session_state.page == 'dashboard':
     cL, cR = st.columns([1, 2])
     
     with cL:
-        # SOL: DUYURULAR + HIZLI İSTATİSTİK
         st.markdown(f"""
         <div class='dashboard-card card-blue' style='height: auto; align-items: flex-start; text-align: left; background: #1e293b; border: 1px solid #3b82f6;'>
             <h3 style='color:#3b82f6;'>📊 DURUM RAPORU</h3>
@@ -259,7 +285,6 @@ elif st.session_state.logged_in and st.session_state.page == 'dashboard':
     with cR:
         if st.session_state.username == ADMIN_USER: st.success("🎓 YÖNETİCİ PANELİ")
         
-        # 1. SATIR (RENKLİ KARTLAR)
         r1_c1, r1_c2, r1_c3 = st.columns(3)
         with r1_c1:
             st.markdown('<div class="dashboard-card card-purple"><h3>📚 ÖDEV</h3><p>Görev Yönetimi</p></div>', unsafe_allow_html=True)
@@ -279,7 +304,6 @@ elif st.session_state.logged_in and st.session_state.page == 'dashboard':
 
         st.markdown("<br>", unsafe_allow_html=True)
 
-        # 2. SATIR
         r2_c1, r2_c2, r2_c3 = st.columns(3)
         with r2_c1:
             st.markdown('<div class="dashboard-card card-blue"><h3>🎯 HEDEF</h3><p>Günlük Plan</p></div>', unsafe_allow_html=True)
@@ -304,20 +328,17 @@ elif st.session_state.logged_in and st.session_state.page == 'dashboard':
                 if st.button("GELEN MESAJLAR"): go_to('admin_inbox')
 
 # ==========================================
-# 3. İÇ SAYFALAR (FONKSİYONLAR)
+# 3. İÇ SAYFALAR
 # ==========================================
 elif st.session_state.logged_in:
     c_back, c_tit = st.columns([1, 10])
     with c_back: 
         if st.button("⬅️", key="nav_back"): go_to('dashboard')
     
-    # --- İSTATİSTİKLER (85432 REKORU İLE) ---
     if st.session_state.page == 'stats':
         st.header("📊 PERFORMANS VE ANALİZ")
         df = pd.read_csv(WORK_DATA)
-        df['Tarih'] = pd.to_datetime(df['Tarih'], errors='coerce')
         my_data = df[df['username'] == st.session_state.username]
-        
         total = my_data['Soru'].sum() if not my_data.empty else 0
         
         c1, c2 = st.columns(2)
@@ -331,10 +352,9 @@ elif st.session_state.logged_in:
             else: st.info("Veri yok.")
         with t2:
             real = df.groupby("username")[["Soru", "Süre"]].sum().reset_index()
-            # SENİN LİDERLİK REKORUN (85432)
+            # 85.432 REKORU
             fake = pd.DataFrame([["Emir Özkök (BOSS)", 85432, 99999]], columns=["username", "Soru", "Süre"])
-            final_df = pd.concat([fake, real]).sort_values(by="Soru", ascending=False).reset_index(drop=True)
-            st.dataframe(final_df, use_container_width=True)
+            st.dataframe(pd.concat([fake, real]).sort_values(by="Soru", ascending=False), use_container_width=True)
 
     elif st.session_state.page == 'kronometre':
         st.header("⏱️ ODAKLANMA")
@@ -368,7 +388,6 @@ elif st.session_state.logged_in:
                     try: bd=pd.read_csv(BOOKS_DATA)
                     except: bd=pd.DataFrame(columns=["username","book_name","category","status"])
                     pd.concat([bd, pd.DataFrame([[target, bn, bc, "Active"]], columns=bd.columns)]).to_csv(BOOKS_DATA, index=False); st.success("OK")
-            
             try: bd=pd.read_csv(BOOKS_DATA); bks=bd[bd['username']==target]['book_name'].tolist()
             except: bks=[]
             if bks:
@@ -434,7 +453,6 @@ elif st.session_state.logged_in:
                     if c_b.button("Sıradaki"): st.session_state.card_index+=1; st.session_state.show_answer=False; st.rerun()
             except: st.write("Kart yok")
 
-    # Admin Ekstra
     elif st.session_state.page == 'admin_users':
         ud = pd.read_csv(USER_DATA)
         edited = st.data_editor(ud)

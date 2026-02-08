@@ -26,40 +26,31 @@ VIDEO_FOLDER = "ozel_videolar"
 ADMIN_USER = "emirozkok"
 ADMIN_PASS_RAW = "Hbaamaek7!.zemir" 
 
-# --- 📋 MÜFREDAT (AYRIŞTIRILMIŞ TAM LİSTE) ---
+# --- 📋 MÜFREDAT (AYRIŞTIRILMIŞ) ---
 CIZELGE_DETAY = {
-    # --- TYT SÖZEL & EA ---
     "TYT TÜRKÇE": ["Sözcükte Anlam", "Cümlede Anlam", "Paragraf", "Ses Bilgisi", "Yazım Kuralları", "Noktalama", "Sözcük Türleri", "Fiiller", "Cümlenin Ögeleri", "Anlatım Bozukluğu"],
     "TYT TARİH": ["Tarih Bilimine Giriş", "İlk Çağ", "İslamiyet Öncesi Türk", "İslam Tarihi", "Türk İslam", "Osmanlı (Kuruluş-Yükselme)", "Osmanlı (Duraklama-Dağılma)", "Milli Mücadele", "Atatürk İlkeleri"],
     "TYT COĞRAFYA": ["Doğa ve İnsan", "Dünya'nın Şekli", "Coğrafi Konum", "Harita", "İklim", "Yer Şekilleri", "Nüfus", "Ulaşım", "Ekonomik Faaliyetler", "Afetler"],
     "TYT FELSEFE": ["Felsefeye Giriş", "Bilgi", "Varlık", "Ahlak", "Sanat", "Din", "Siyaset", "Bilim"],
     "TYT DİN": ["Bilgi ve İnanç", "Din ve İslam", "İslam ve İbadet", "Hz. Muhammed", "Vahiy ve Akıl"],
-    
-    # --- TYT SAYISAL ---
     "TYT MATEMATİK": ["Temel Kavramlar", "Sayı Basamakları", "Bölme-Bölünebilme", "EBOB-EKOK", "Rasyonel", "Eşitsizlikler", "Mutlak Değer", "Üslü-Köklü", "Çarpanlara Ayırma", "Oran-Orantı", "Problemler", "Mantık", "Kümeler", "Fonksiyonlar", "Polinomlar", "PKOB"],
     "TYT FİZİK": ["Fizik Bilimi", "Madde ve Özellikleri", "Hareket", "İş-Güç-Enerji", "Isı-Sıcaklık", "Elektrostatik", "Elektrik", "Optik", "Basınç", "Dalgalar"],
     "TYT KİMYA": ["Kimya Bilimi", "Atom", "Türler Arası Etkileşim", "Madden Halleri", "Asit-Baz-Tuz", "Karışımlar", "Kimya Her Yerde"],
     "TYT BİYOLOJİ": ["Canlıların Ortak Öz.", "Temel Bileşenler", "Hücre", "Sınıflandırma", "Bölünmeler", "Kalıtım", "Ekoloji"],
-    
-    # --- ORTAK ---
     "GEOMETRİ": ["Üçgenler", "Çokgenler", "Dörtgenler", "Çember-Daire", "Katı Cisimler", "Analitik", "Dönüşüm"],
-    
-    # --- AYT SAYISAL ---
     "AYT MATEMATİK": ["Fonksiyonlar-2", "Polinomlar-2", "2. Dereceden Denklem", "Parabol", "Eşitsizlikler", "Trigonometri", "Logaritma", "Diziler", "Limit", "Türev", "İntegral"],
     "AYT FİZİK": ["Vektör", "Bağıl Hareket", "Newton", "Atışlar", "İtme-Momentum", "Tork-Denge", "Elektrik-Manyetizma", "Çembersel Hareket", "Harmonik Hareket", "Dalga Mekaniği", "Modern Fizik"],
     "AYT KİMYA": ["Modern Atom", "Gazlar", "Sıvı Çözeltiler", "Enerji", "Hız", "Denge", "Asit-Baz Dengesi", "KÇÇ", "Elektrik", "Organik"],
     "AYT BİYOLOJİ": ["Sistemler", "Komünite", "Genden Proteine", "Canlılık ve Enerji", "Bitki Biyolojisi"],
-    
-    # --- AYT EA/SÖZEL ---
     "AYT EDEBİYAT": ["Şiir Bilgisi", "Edebi Sanatlar", "İslamiyet Öncesi", "Halk Edebiyatı", "Divan", "Tanzimat", "Servet-i Fünun", "Milli Edebiyat", "Cumhuriyet"],
     "AYT TARİH": ["Tarih Bilimi", "İlk Türk Devletleri", "İslam Tarihi", "Türk-İslam", "Osmanlı Tarihi", "İnkılap Tarihi", "Çağdaş Türk Dünya"],
     "AYT COĞRAFYA": ["Biyoçeşitlilik", "Ekosistem", "Nüfus Politikaları", "Türkiye Ekonomisi", "Kültür Bölgeleri", "Küresel Ticaret", "Çevre Sorunları"]
 }
 
 FLASHCARD_DERSLER = list(CIZELGE_DETAY.keys())
-ODEV_DERSLERI = list(CIZELGE_DETAY.keys()) # Hepsi seçilebilir olsun
+ODEV_DERSLERI = ["TYT MATEMATİK", "AYT MATEMATİK", "GEOMETRİ", "TYT FİZİK", "AYT FİZİK", "TYT KİMYA", "AYT KİMYA", "TYT BİYOLOJİ", "AYT BİYOLOJİ", "TYT TÜRKÇE", "TYT TARİH", "TYT COĞRAFYA", "TYT FELSEFE", "TYT DİN"]
 
-# --- 🛡️ GÜVENLİ DOSYA OKUMA (HATA ENGELLEYİCİ) ---
+# --- 🛡️ GÜVENLİ DOSYA OKUMA ---
 def safe_read_csv(file_path, columns):
     try:
         if not os.path.exists(file_path) or os.stat(file_path).st_size == 0:
@@ -77,7 +68,6 @@ def make_hashes(p): return hashlib.sha256(str.encode(p)).hexdigest()
 def init_files():
     if not os.path.exists(VIDEO_FOLDER): os.makedirs(VIDEO_FOLDER)
     
-    # Dosyaları başlat
     safe_read_csv(WORK_DATA, ["username", "Tarih", "Ders", "Konu", "Soru", "Süre"])
     safe_read_csv(TASKS_DATA, ["id", "username", "book", "ders", "konu", "gorev", "durum", "tarih"])
     safe_read_csv(BOOKS_DATA, ["username", "book_name", "category", "status"])
@@ -87,7 +77,6 @@ def init_files():
     safe_read_csv(TRIALS_DATA, ["username", "tarih", "tur", "yayin", "net"])
     safe_read_csv(VIDEO_DATA, ["baslik", "dosya_yolu"])
 
-    # Kullanıcı dosyası
     if not os.path.exists(USER_DATA) or os.stat(USER_DATA).st_size == 0:
         df = pd.DataFrame(columns=["username", "password", "ad", "telefon", "email", "hedef", "is_coaching", "warnings", "plus"])
         admin_data = pd.DataFrame([[ADMIN_USER, make_hashes(ADMIN_PASS_RAW), "Emir Özkök", "05000000000", "admin@emir.com", "Mühendislik", "True", 0, "True"]], columns=df.columns)
@@ -111,7 +100,7 @@ st.markdown("""
     header, footer, #MainMenu, .stDeployButton, div[class^='viewerBadge'] {display: none !important;}
     .block-container { padding-top: 1rem !important; padding-bottom: 0rem !important; }
 
-    /* KARTLAR */
+    /* DASHBOARD KARTLARI */
     .dashboard-card {
         border-radius: 20px; padding: 20px; color: white;
         transition: transform 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
@@ -123,7 +112,6 @@ st.markdown("""
     .dashboard-card h3 { margin: 0; font-size: 22px; font-weight: 800; text-shadow: 0 2px 4px rgba(0,0,0,0.2); }
     .dashboard-card p { margin: 5px 0 0 0; font-size: 15px; opacity: 0.95; font-weight: 500; }
 
-    /* RENKLER */
     .card-purple { background: linear-gradient(135deg, #9b5de5, #f15bb5); }
     .card-mustard { background: linear-gradient(135deg, #f6d365 0%, #fda085 100%); }
     .card-orange { background: linear-gradient(135deg, #ff9966, #ff5e62); }
@@ -155,10 +143,11 @@ st.markdown("""
         display: block; width: 100%; padding: 15px;
         background: linear-gradient(90deg, #2563eb, #1d4ed8);
         color: white !important; text-align: center; border-radius: 8px;
-        text-decoration: none; font-weight: bold; font-size: 15px;
-        margin-top: 20px; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3); transition: 0.3s;
+        text-decoration: none; font-weight: bold; font-size: 16px;
+        margin-top: 30px; box-shadow: 0 4px 20px rgba(37, 99, 235, 0.4); 
+        transition: 0.3s;
     }
-    .teams-link:hover { transform: scale(1.02); box-shadow: 0 6px 20px rgba(37, 99, 235, 0.5); }
+    .teams-link:hover { transform: scale(1.02); box-shadow: 0 6px 25px rgba(37, 99, 235, 0.6); }
 </style>
 """, unsafe_allow_html=True)
 
@@ -172,30 +161,34 @@ if 'start_time' not in st.session_state: st.session_state.start_time = 0
 def go_to(page): st.session_state.page = page; st.rerun()
 
 # ==========================================
-# 1. LANDING PAGE (DÜZENLENDİ: SOL FOTO - SAĞ KUTU İÇİ TAB)
+# 1. LANDING PAGE
 # ==========================================
 if st.session_state.page == 'landing' and not st.session_state.logged_in:
     
-    st.markdown("<h1 style='text-align:center; font-size: 60px; color:#3b82f6; margin-bottom:20px;'>EMİR ÖZKÖK</h1>", unsafe_allow_html=True)
+    st.markdown("<h1 style='text-align:center; font-size: 70px; color:#3b82f6; margin-bottom:30px; text-shadow: 0 0 20px rgba(59,130,246,0.5);'>EMİR ÖZKÖK</h1>", unsafe_allow_html=True)
     
-    # --- KARŞILAMA YAZISI ---
-    st.markdown("""
-    <div style='text-align:center; margin-bottom: 40px; padding: 0 5%;'>
-        <p style='color:#cbd5e1; font-size:18px; line-height:1.6;'>
-        Sınav senesinde <b>"keşke böyle bir site olsaydı"</b> diyeceğim şekilde, ihtiyaçlarına göre bir site hazırladım. 
-        İçeride yaptıklarını kaydedebileceğin, ne kadar soru çözdüğünü anlık görebileceğin, 
-        önemli bilgileri not edip flash kartlarla çalışabileceğin bölümler ve daha nicesi...
-        </p>
-        <p style='color:#3b82f6; font-weight:bold; font-size:20px; margin-top:15px;'>
-        HADİ HEMEN KAYIT OL VE GİRİŞ YAP! 🚀
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
-
-    col1, col2 = st.columns([1, 1.2], gap="large")
+    # --- DÜZEN: SOL (YAZI/FOTO) - SAĞ (TEK KUTU + TAB) ---
+    col1, col2 = st.columns([1.5, 1], gap="large")
     
-    # --- SOL: FOTOĞRAF ---
+    # --- SOL: FOTO VE YAZI ---
     with col1:
+        st.markdown("""
+        <div style='text-align:left; margin-bottom: 30px;'>
+            <p style='color:#e2e8f0; font-size:22px; line-height:1.6; font-weight: 500;'>
+            Sınav senesinde <b>"keşke böyle bir site olsaydı"</b> diyeceğim şekilde, ihtiyaçlarına göre bir site hazırladım.
+            </p>
+            <p style='color:#94a3b8; font-size:18px; margin-top:20px;'>
+            ✅ Yaptıklarını kaydet, gelişimini gör.<br>
+            ✅ Ne kadar soru çözdüğünü anlık takip et.<br>
+            ✅ Önemli bilgileri not et, flash kartlarla çalış.<br>
+            ✅ Denemelerini analiz et ve yükselişe geç!
+            </p>
+            <p style='color:#3b82f6; font-weight:bold; font-size:26px; margin-top:30px;'>
+            HADİ HEMEN BAŞLA! 🚀
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+        
         found_files = glob.glob("emir_foto.*") + glob.glob("emir*.*")
         photo_path = None
         for f in found_files:
@@ -203,15 +196,13 @@ if st.session_state.page == 'landing' and not st.session_state.logged_in:
         
         if photo_path:
             with open(photo_path, "rb") as image_file: encoded_string = base64.b64encode(image_file.read()).decode()
-            st.markdown(f'''<div style="width:100%; aspect-ratio: 1/1; overflow:hidden; border-radius:15px; border:2px solid #3b82f6; box-shadow: 0 0 30px rgba(59, 130, 246, 0.4);"><img src="data:image/png;base64,{encoded_string}" style="width:100%; height:100%; object-fit:cover;"></div>''', unsafe_allow_html=True)
-        else: st.warning("Fotoğraf yok.")
+            st.markdown(f'''<div style="width:100%; aspect-ratio: 16/9; overflow:hidden; border-radius:20px; border:2px solid #3b82f6; box-shadow: 0 0 30px rgba(59, 130, 246, 0.3);"><img src="data:image/png;base64,{encoded_string}" style="width:100%; height:100%; object-fit:cover;"></div>''', unsafe_allow_html=True)
 
-    # --- SAĞ: KUTU İÇİNDE GİRİŞ VE KAYIT (SEKMELİ) ---
+    # --- SAĞ: TEK KUTU (TABLI SİSTEM) ---
     with col2:
         st.markdown("<div class='login-box'>", unsafe_allow_html=True)
         
-        # İŞTE BURASI SENİN İSTEDİĞİN KISIM:
-        # Tek bir kutu var, içinde GİRİŞ ve KAYIT sekmeleri (Tab) var.
+        # --- TABLAR (GİRİŞ / KAYIT) ---
         tab1, tab2 = st.tabs(["🔐 GİRİŞ YAP", "📝 KAYIT OL"])
         
         with tab1:
@@ -220,6 +211,7 @@ if st.session_state.page == 'landing' and not st.session_state.logged_in:
             p = st.text_input("Şifre", type='password', key="l_p")
             if st.button("GİRİŞ YAP", use_container_width=True):
                 try:
+                    # HATA VERMEYEN OKUMA
                     ud = safe_read_csv(USER_DATA, ["username", "password", "ad", "is_coaching"])
                     hp = make_hashes(p)
                     user = ud[(ud['username']==u) & (ud['password']==hp)]
@@ -227,7 +219,9 @@ if st.session_state.page == 'landing' and not st.session_state.logged_in:
                         st.session_state.logged_in=True
                         st.session_state.username=u
                         st.session_state.realname=user.iloc[0]['ad']
-                        st.session_state.is_coaching = str(user.iloc[0]['is_coaching']).strip().lower() in ['true', '1', 'yes']
+                        # GÜÇLÜ KONTROL: Koçluk yetkisi
+                        is_coach = str(user.iloc[0]['is_coaching']).strip().lower() in ['true', '1', 'yes']
+                        st.session_state.is_coaching = is_coach
                         st.session_state.page='dashboard'
                         st.rerun()
                     else: st.error("Hatalı bilgiler.")
@@ -250,7 +244,7 @@ if st.session_state.page == 'landing' and not st.session_state.logged_in:
                         if ru not in ud['username'].values:
                             new_user = pd.DataFrame([[ru, make_hashes(rp), n, rt, rm, rh, "False", 0, "False"]], columns=ud.columns)
                             pd.concat([ud, new_user], ignore_index=True).to_csv(USER_DATA, index=False)
-                            st.success("Kayıt Başarılı! 'Giriş Yap' sekmesine tıkla.")
+                            st.success("Kayıt Başarılı! 'Giriş Yap' sekmesinden gir.")
                         else: st.error("Kullanıcı adı alınmış.")
                     except: st.error("Kayıt hatası.")
         
@@ -334,7 +328,7 @@ elif st.session_state.logged_in and st.session_state.page == 'dashboard':
             with a3: 
                 if st.button("GELEN MESAJLAR"): go_to('admin_inbox')
             with a4:
-                if st.button("💾 YEDEKLE"): go_to('admin_backup')
+                if st.button("💾 YEDEKLE / GERİ YÜKLE"): go_to('admin_backup')
 
 # ==========================================
 # 3. İÇ SAYFALAR

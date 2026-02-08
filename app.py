@@ -48,37 +48,42 @@ CIZELGE_DETAY = {
 }
 
 FLASHCARD_DERSLER = list(CIZELGE_DETAY.keys())
+ODEV_DERSLERI = ["TYT MATEMATİK", "AYT MATEMATİK", "GEOMETRİ", "TYT FİZİK", "AYT FİZİK", "TYT KİMYA", "AYT KİMYA", "TYT BİYOLOJİ", "AYT BİYOLOJİ", "TYT TÜRKÇE", "TYT TARİH", "TYT COĞRAFYA", "TYT FELSEFE", "TYT DİN"]
 
-# --- ÖDEV VERİLECEK DERSLER (SADECE TYT VE SAYISAL AYT) ---
-ODEV_DERSLERI = [
-    "TYT MATEMATİK", "AYT MATEMATİK", "GEOMETRİ", 
-    "TYT FİZİK", "AYT FİZİK", 
-    "TYT KİMYA", "AYT KİMYA", 
-    "TYT BİYOLOJİ", "AYT BİYOLOJİ", 
-    "TYT TÜRKÇE", "TYT TARİH", "TYT COĞRAFYA", "TYT FELSEFE", "TYT DİN"
-]
+# --- 🛡️ HATA KORUMALI DOSYA OKUMA FONKSİYONU ---
+def safe_read_csv(file_path, columns):
+    """
+    Dosyayı güvenli bir şekilde okur.
+    Eğer dosya yoksa, boşsa veya bozuksa (EmptyDataError), 
+    yeni ve temiz bir DataFrame oluşturup dosyayı onarır.
+    """
+    try:
+        if not os.path.exists(file_path) or os.stat(file_path).st_size == 0:
+            df = pd.DataFrame(columns=columns)
+            df.to_csv(file_path, index=False)
+            return df
+        return pd.read_csv(file_path)
+    except Exception as e:
+        # Hata durumunda dosyayı sıfırla ve boş döndür (Çökmesini engeller)
+        df = pd.DataFrame(columns=columns)
+        df.to_csv(file_path, index=False)
+        return df
 
-# --- FONKSİYONLAR ---
 def make_hashes(p): return hashlib.sha256(str.encode(p)).hexdigest()
 
 def init_files():
     if not os.path.exists(VIDEO_FOLDER): os.makedirs(VIDEO_FOLDER)
-    
-    file_definitions = {
-        WORK_DATA: ["username", "Tarih", "Ders", "Konu", "Soru", "Süre"],
-        TASKS_DATA: ["id", "username", "book", "ders", "konu", "gorev", "durum", "tarih"],
-        BOOKS_DATA: ["username", "book_name", "category", "status"],
-        GOALS_DATA: ["username", "date", "target_min", "status"],
-        EMIR_QUESTIONS: ["id", "Tarih", "Kullanici", "Soru", "Durum"],
-        SMART_FLASHCARD_DATA: ["username", "ders", "soru", "cevap", "tarih"],
-        TRIALS_DATA: ["username", "tarih", "tur", "yayin", "net"],
-        VIDEO_DATA: ["baslik", "dosya_yolu"]
-    }
+    # Başlangıçta tüm dosyaları kontrol et
+    safe_read_csv(WORK_DATA, ["username", "Tarih", "Ders", "Konu", "Soru", "Süre"])
+    safe_read_csv(TASKS_DATA, ["id", "username", "book", "ders", "konu", "gorev", "durum", "tarih"])
+    safe_read_csv(BOOKS_DATA, ["username", "book_name", "category", "status"])
+    safe_read_csv(GOALS_DATA, ["username", "date", "target_min", "status"])
+    safe_read_csv(EMIR_QUESTIONS, ["id", "Tarih", "Kullanici", "Soru", "Durum"])
+    safe_read_csv(SMART_FLASHCARD_DATA, ["username", "ders", "soru", "cevap", "tarih"])
+    safe_read_csv(TRIALS_DATA, ["username", "tarih", "tur", "yayin", "net"])
+    safe_read_csv(VIDEO_DATA, ["baslik", "dosya_yolu"])
 
-    for filename, columns in file_definitions.items():
-        if not os.path.exists(filename) or os.stat(filename).st_size == 0:
-            pd.DataFrame(columns=columns).to_csv(filename, index=False)
-
+    # Kullanıcı Dosyası Özel Kontrol
     if not os.path.exists(USER_DATA) or os.stat(USER_DATA).st_size == 0:
         df = pd.DataFrame(columns=["username", "password", "ad", "telefon", "email", "hedef", "is_coaching", "warnings", "plus"])
         admin_data = pd.DataFrame([[ADMIN_USER, make_hashes(ADMIN_PASS_RAW), "Emir Özkök", "05000000000", "admin@emir.com", "Mühendislik", "True", 0, "True"]], columns=df.columns)
@@ -95,13 +100,14 @@ def init_files():
 
 init_files()
 
-# --- 🎨 CSS: RENKLİ & CANLI ---
+# --- 🎨 CSS: YENİLENMİŞ VE PARLAK ---
 st.markdown("""
 <style>
     .stApp { background-color: #02040a; color: #e2e8f0; font-family: 'Inter', sans-serif; }
     header, footer, #MainMenu, .stDeployButton, div[class^='viewerBadge'] {display: none !important;}
     .block-container { padding-top: 1rem !important; padding-bottom: 0rem !important; }
 
+    /* DASHBOARD KARTLARI */
     .dashboard-card {
         border-radius: 20px; padding: 20px; color: white;
         transition: transform 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
@@ -119,21 +125,35 @@ st.markdown("""
     .card-blue { background: linear-gradient(135deg, #00c6ff, #0072ff); }
     .card-dark { background: linear-gradient(135deg, #434343, #000000); }
     
+    /* GİRİŞ SAYFASI (YENİ PARLAK TASARIM) */
     .login-box {
-        background: #0f172a; padding: 40px; border-radius: 12px;
-        border: 1px solid #1e293b; box-shadow: 0 10px 40px rgba(0,0,0,0.7); margin-top: 20px;
+        background: rgba(15, 23, 42, 0.85); /* Hafif transparan */
+        padding: 50px; /* Daha geniş */
+        border-radius: 20px;
+        border: 2px solid #3b82f6; /* Mavi çerçeve */
+        box-shadow: 0 0 40px rgba(59, 130, 246, 0.4); /* Neon Parlama */
+        margin-top: 20px;
     }
-    div.stTextInput > div > div > input, div.stSelectbox > div > button, div.stNumberInput > div > div > input { background-color: #1e293b; color: white; border: 1px solid #334155; }
-    div.stButton > button { background-color: transparent; color: white; border: 1px solid rgba(255,255,255,0.2); font-weight: bold; width: 100%; }
+    div.stTextInput > div > div > input, div.stSelectbox > div > button, div.stNumberInput > div > div > input { 
+        background-color: #1e293b; color: white; border: 1px solid #334155; 
+    }
+    div.stButton > button { 
+        background-color: transparent; color: white; border: 1px solid rgba(255,255,255,0.2); 
+        font-weight: bold; width: 100%; transition: 0.3s;
+    }
+    div.stButton > button:hover {
+        background-color: #3b82f6; border-color: #3b82f6;
+    }
 
     .teams-link {
         display: block; width: 100%; padding: 15px;
         background: linear-gradient(90deg, #2563eb, #1d4ed8);
         color: white !important; text-align: center; border-radius: 8px;
-        text-decoration: none; font-weight: bold; font-size: 15px;
-        margin-top: 20px; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3); transition: 0.3s;
+        text-decoration: none; font-weight: bold; font-size: 16px;
+        margin-top: 25px; box-shadow: 0 4px 20px rgba(37, 99, 235, 0.4); 
+        transition: 0.3s;
     }
-    .teams-link:hover { transform: scale(1.02); box-shadow: 0 6px 20px rgba(37, 99, 235, 0.5); }
+    .teams-link:hover { transform: scale(1.02); box-shadow: 0 6px 25px rgba(37, 99, 235, 0.6); }
 </style>
 """, unsafe_allow_html=True)
 
@@ -150,8 +170,20 @@ def go_to(page): st.session_state.page = page; st.rerun()
 # 1. LANDING PAGE
 # ==========================================
 if st.session_state.page == 'landing' and not st.session_state.logged_in:
-    st.markdown("<h1 style='text-align:center; font-size: 60px; color:#3b82f6; margin-bottom:20px;'>EMİR ÖZKÖK</h1>", unsafe_allow_html=True)
-    st.markdown("""<div style='text-align:center; margin-bottom: 40px; padding: 0 5%;'><p style='color:#cbd5e1; font-size:18px; line-height:1.6;'>Sınav senesinde <b>"keşke böyle bir site olsaydı"</b> diyeceğim şekilde, ihtiyaçlarına göre bir site hazırladım. İçeride yaptıklarını kaydedebileceğin, ne kadar soru çözdüğünü anlık görebileceğin, önemli bilgileri not edip flash kartlarla çalışabileceğin bölümler ve daha nicesi...</p><p style='color:#3b82f6; font-weight:bold; font-size:20px; margin-top:15px;'>HADİ HEMEN KAYIT OL VE GİRİŞ YAP! 🚀</p></div>""", unsafe_allow_html=True)
+    st.markdown("<h1 style='text-align:center; font-size: 70px; color:#3b82f6; margin-bottom:30px; text-shadow: 0 0 20px rgba(59,130,246,0.5);'>EMİR ÖZKÖK</h1>", unsafe_allow_html=True)
+    
+    st.markdown("""
+    <div style='text-align:center; margin-bottom: 50px; padding: 0 10%;'>
+        <p style='color:#cbd5e1; font-size:20px; line-height:1.6;'>
+        Sınav senesinde <b>"keşke böyle bir site olsaydı"</b> diyeceğim şekilde, ihtiyaçlarına göre bir site hazırladım. 
+        İçeride yaptıklarını kaydedebileceğin, ne kadar soru çözdüğünü anlık görebileceğin, 
+        önemli bilgileri not edip flash kartlarla çalışabileceğin bölümler ve daha nicesi...
+        </p>
+        <p style='color:#3b82f6; font-weight:bold; font-size:24px; margin-top:20px;'>
+        HADİ HEMEN KAYIT OL VE GİRİŞ YAP! 🚀
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
 
     col1, col2 = st.columns([1, 1.2], gap="large")
     with col1:
@@ -161,47 +193,55 @@ if st.session_state.page == 'landing' and not st.session_state.logged_in:
             if f.lower().endswith(('.jpg', '.jpeg', '.png', '.jpg.jpg')): photo_path = f; break
         if photo_path:
             with open(photo_path, "rb") as image_file: encoded_string = base64.b64encode(image_file.read()).decode()
-            st.markdown(f'''<div style="width:100%; aspect-ratio: 1/1; overflow:hidden; border-radius:15px; border:2px solid #3b82f6; box-shadow: 0 0 30px rgba(59, 130, 246, 0.4);"><img src="data:image/png;base64,{encoded_string}" style="width:100%; height:100%; object-fit:cover;"></div>''', unsafe_allow_html=True)
+            st.markdown(f'''<div style="width:100%; aspect-ratio: 1/1; overflow:hidden; border-radius:20px; border:3px solid #3b82f6; box-shadow: 0 0 40px rgba(59, 130, 246, 0.5);"><img src="data:image/png;base64,{encoded_string}" style="width:100%; height:100%; object-fit:cover;"></div>''', unsafe_allow_html=True)
         else: st.warning("Fotoğraf yok.")
 
     with col2:
         st.markdown("<div class='login-box'>", unsafe_allow_html=True)
         tab1, tab2 = st.tabs(["🔐 GİRİŞ YAP", "📝 KAYIT OL"])
+        
         with tab1:
+            st.markdown("<br>", unsafe_allow_html=True)
             u = st.text_input("Kullanıcı Adı", key="l_u")
             p = st.text_input("Şifre", type='password', key="l_p")
-            if st.button("GİRİŞ YAP"):
+            if st.button("GİRİŞ YAP", use_container_width=True):
                 try:
-                    ud = pd.read_csv(USER_DATA)
+                    # GÜVENLİ OKUMA KULLANILDI
+                    ud = safe_read_csv(USER_DATA, ["username", "password", "ad", "is_coaching"])
                     hp = make_hashes(p)
                     user = ud[(ud['username']==u) & (ud['password']==hp)]
                     if not user.empty:
                         st.session_state.logged_in=True
                         st.session_state.username=u
                         st.session_state.realname=user.iloc[0]['ad']
-                        st.session_state.is_coaching = (str(user.iloc[0]['is_coaching']) == "True")
+                        # GÜÇLÜ KONTROL: True, true, 1, yes hepsini kabul et
+                        is_coach = str(user.iloc[0]['is_coaching']).strip().lower() in ['true', '1', 'yes']
+                        st.session_state.is_coaching = is_coach
                         st.session_state.page='dashboard'
                         st.rerun()
                     else: st.error("Hatalı bilgiler.")
-                except: st.error("Sistem hazırlanıyor.")
+                except Exception as e: st.error(f"Giriş hatası: {e}")
+        
         with tab2:
+            st.markdown("<br>", unsafe_allow_html=True)
             n = st.text_input("Ad Soyad", key="r_n")
             ru = st.text_input("Kullanıcı Adı", key="r_u")
             rp = st.text_input("Şifre (Min 7 karakter)", type='password', key="r_p")
             rh = st.selectbox("Hedefin (Bölüm)", ["Sayısal", "Eşit Ağırlık", "Sözel", "Dil"], key="r_h")
             rt = st.text_input("Telefon", key="r_t", max_chars=11)
             rm = st.text_input("E-posta", key="r_m")
-            if st.button("KAYDI TAMAMLA"):
+            if st.button("KAYDI TAMAMLA", use_container_width=True):
                 if not n or not ru or not rp: st.error("Boş alan bırakma.")
                 else:
                     try:
-                        ud = pd.read_csv(USER_DATA)
+                        ud = safe_read_csv(USER_DATA, ["username", "password", "ad", "telefon", "email", "hedef", "is_coaching", "warnings", "plus"])
                         if ru not in ud['username'].values:
                             new_user = pd.DataFrame([[ru, make_hashes(rp), n, rt, rm, rh, "False", 0, "False"]], columns=ud.columns)
                             pd.concat([ud, new_user], ignore_index=True).to_csv(USER_DATA, index=False)
-                            st.success("Kayıt Başarılı!")
+                            st.success("Kayıt Başarılı! Giriş yapabilirsiniz.")
                         else: st.error("Kullanıcı adı alınmış.")
                     except: st.error("Veritabanı hatası.")
+        
         st.markdown("</div>", unsafe_allow_html=True)
         st.markdown("""<a href="https://teams.live.com/l/community/FEA37u2Ksl3MjtjcgY" target="_blank" class="teams-link">🎁 Bedava hazır programlar ve taktikler için TOPLULUĞA KATIL</a>""", unsafe_allow_html=True)
 
@@ -221,7 +261,7 @@ elif st.session_state.logged_in and st.session_state.page == 'dashboard':
     st.markdown("---")
 
     try:
-        df_w = pd.read_csv(WORK_DATA)
+        df_w = safe_read_csv(WORK_DATA, ["username", "Soru", "Süre"])
         my_data = df_w[df_w['username'] == st.session_state.username]
         total_solved = my_data['Soru'].sum()
         total_min = my_data['Süre'].sum()
@@ -245,6 +285,7 @@ elif st.session_state.logged_in and st.session_state.page == 'dashboard':
         r1_c1, r1_c2, r1_c3 = st.columns(3)
         with r1_c1:
             st.markdown('<div class="dashboard-card card-purple"><h3>📚 ÖDEV</h3><p>Görev Yönetimi</p></div>', unsafe_allow_html=True)
+            # BURADA GÜVENLİ KONTROL
             if st.session_state.get('is_coaching', False):
                 if st.button("GÖREVLERİ AÇ", use_container_width=True): 
                     if st.session_state.username == ADMIN_USER: go_to('admin_cizelge')
@@ -289,7 +330,7 @@ elif st.session_state.logged_in:
     if st.session_state.page == 'settings':
         st.header("⚙️ Profil Ayarları")
         try:
-            ud = pd.read_csv(USER_DATA)
+            ud = safe_read_csv(USER_DATA, ["username", "ad", "telefon", "hedef"])
             curr = ud[ud['username']==st.session_state.username].iloc[0]
             with st.form("settings"):
                 na = st.text_input("Ad Soyad", value=curr['ad'])
@@ -310,7 +351,7 @@ elif st.session_state.logged_in:
     elif st.session_state.page == 'admin_users':
         st.header("👥 Öğrenci Yönetimi")
         st.info("❗ Koçluk yetkisi vermek için 'is_coaching' kutucuğunu işaretle ve KAYDET butonuna bas.")
-        ud = pd.read_csv(USER_DATA)
+        ud = safe_read_csv(USER_DATA, ["username", "is_coaching"])
         ud['is_coaching'] = ud['is_coaching'].apply(lambda x: str(x).lower() in ['true', '1', 'yes'])
         edited_df = st.data_editor(ud, num_rows="dynamic", column_config={"is_coaching": st.column_config.CheckboxColumn("Koçluk Öğrencisi mi?", default=False)})
         if st.button("💾 DEĞİŞİKLİKLERİ KAYDET"):
@@ -319,27 +360,20 @@ elif st.session_state.logged_in:
             st.success("Veriler güncellendi!")
             time.sleep(1); st.rerun()
 
-    # --- İSTATİSTİK & VERİ GİRİŞİ (YENİ: SAAT VE DAKİKA) ---
     elif st.session_state.page == 'stats':
         st.header("📊 Analiz ve Veri Girişi")
-        
         tab_calisma, tab_deneme, tab_grafik = st.tabs(["📚 GÜNLÜK ÇALIŞMA", "🏆 DENEME SINAVI", "📈 GRAFİKLER"])
         
-        # 1. SEKME: GÜNLÜK ÇALIŞMA
         with tab_calisma:
             st.subheader("1. Soru Girişi (Ders Ders)")
             st.info("Bugün çözdüğün soruları buradan gir.")
-            
             selected_date = st.date_input("Hangi Tarih?", date.today())
-            
             c_d1, c_d2, c_d3 = st.columns([2, 1, 1])
             s_ders = c_d1.selectbox("Ders Seç", list(CIZELGE_DETAY.keys()))
             s_soru = c_d2.number_input("Soru Sayısı", min_value=0, step=5)
-            
             if c_d3.button("Soru Ekle"):
                 if s_soru > 0:
-                    try: df = pd.read_csv(WORK_DATA)
-                    except: df = pd.DataFrame(columns=["username","Tarih","Ders","Konu","Soru","Süre"])
+                    df = safe_read_csv(WORK_DATA, ["username","Tarih","Ders","Konu","Soru","Süre"])
                     new_row = pd.DataFrame([[st.session_state.username, str(selected_date), s_ders, "Soru Çözümü", s_soru, 0]], columns=df.columns)
                     pd.concat([df, new_row], ignore_index=True).to_csv(WORK_DATA, index=False)
                     st.success(f"{s_ders}: {s_soru} soru eklendi!")
@@ -347,66 +381,53 @@ elif st.session_state.logged_in:
 
             st.write("---")
             st.subheader("2. Günlük Toplam Çalışma Süresi")
-            st.info("Bugün toplam ne kadar çalıştın? (Tek seferde gir)")
-            
+            st.info("Bugün toplam ne kadar çalıştın?")
             c_h, c_m, c_b = st.columns([1, 1, 1])
             saat = c_h.number_input("Saat", 0, 24, 0)
             dakika = c_m.number_input("Dakika", 0, 59, 0)
-            
             if c_b.button("Süreyi Kaydet"):
                 toplam_dk = (saat * 60) + dakika
                 if toplam_dk > 0:
-                    try: df = pd.read_csv(WORK_DATA)
-                    except: df = pd.DataFrame(columns=["username","Tarih","Ders","Konu","Soru","Süre"])
-                    # Süreyi "GENEL" dersi altında kaydediyoruz ki karışmasın
+                    df = safe_read_csv(WORK_DATA, ["username","Tarih","Ders","Konu","Soru","Süre"])
                     new_row = pd.DataFrame([[st.session_state.username, str(selected_date), "GENEL", "Günlük Süre", 0, toplam_dk]], columns=df.columns)
                     pd.concat([df, new_row], ignore_index=True).to_csv(WORK_DATA, index=False)
                     st.success(f"Toplam {saat} saat {dakika} dakika kaydedildi!")
                 else: st.warning("Süre girmedin.")
 
-        # 2. SEKME: DENEME SINAVI
         with tab_deneme:
             st.subheader("🏆 Deneme Sınavı Ekle")
             with st.form("trial_form"):
                 c_t1, c_t2 = st.columns(2)
                 t_date = c_t1.date_input("Deneme Tarihi", date.today())
                 t_tur = c_t2.selectbox("Deneme Türü", ["TYT", "AYT", "Branş Denemesi"])
-                
                 c_t3, c_t4 = st.columns(2)
                 t_yayin = c_t3.text_input("Yayın Evi (Örn: 345, Bilgi Sarmal)")
                 t_net = c_t4.number_input("Toplam Net", min_value=0.0, step=0.25, format="%.2f")
-                
                 if st.form_submit_button("DENEMEYİ KAYDET"):
-                    try: trial_df = pd.read_csv(TRIALS_DATA)
-                    except: trial_df = pd.DataFrame(columns=["username", "tarih", "tur", "yayin", "net"])
-                    
+                    trial_df = safe_read_csv(TRIALS_DATA, ["username", "tarih", "tur", "yayin", "net"])
                     new_trial = pd.DataFrame([[st.session_state.username, str(t_date), t_tur, t_yayin, t_net]], columns=trial_df.columns)
                     pd.concat([trial_df, new_trial], ignore_index=True).to_csv(TRIALS_DATA, index=False)
-                    st.success("✅ Deneme başarıyla kaydedildi!")
+                    st.success("✅ Deneme kaydedildi!")
                     time.sleep(1); st.rerun()
-            
             st.write("### 📉 Deneme Grafiği")
             try:
-                tdf = pd.read_csv(TRIALS_DATA)
+                tdf = safe_read_csv(TRIALS_DATA, ["username", "tarih", "net"])
                 my_trials = tdf[tdf['username'] == st.session_state.username]
                 if not my_trials.empty:
                     st.line_chart(my_trials, x="tarih", y="net")
                     st.dataframe(my_trials.sort_values(by="tarih", ascending=False), use_container_width=True)
-                else: st.info("Henüz deneme kaydı girmedin.")
+                else: st.info("Henüz deneme kaydı yok.")
             except: st.error("Veri yok.")
 
-        # 3. SEKME: GENEL GRAFİKLER
         with tab_grafik:
             try:
-                df = pd.read_csv(WORK_DATA)
+                df = safe_read_csv(WORK_DATA, ["username", "Ders", "Soru", "Tarih"])
                 my_data = df[df['username'] == st.session_state.username]
                 if not my_data.empty:
                     st.write("### 📊 Ders Bazlı Soru Dağılımı")
-                    # "GENEL" dersini grafikten çıkarıyoruz (çünkü o sadece süre)
                     chart_data = my_data[my_data['Ders'] != "GENEL"]
                     st.bar_chart(chart_data.groupby("Ders")["Soru"].sum())
-                    
-                    st.write("### 🗓️ Son Eklenen Çalışmalar")
+                    st.write("### 🗓️ Son Çalışmalar")
                     st.dataframe(my_data.sort_values(by="Tarih", ascending=False).head(10), use_container_width=True)
                 else: st.info("Henüz veri yok.")
             except: st.error("Veri okuma hatası.")
@@ -417,13 +438,13 @@ elif st.session_state.logged_in:
         with c_k1:
             st.subheader("🎯 Günlük Hedefin")
             try: 
-                gd = pd.read_csv(GOALS_DATA)
+                gd = safe_read_csv(GOALS_DATA, ["username", "date", "target_min"])
                 my_goal = gd[(gd['username']==st.session_state.username) & (gd['date']==str(date.today()))]
                 target_val = my_goal.iloc[0]['target_min'] if not my_goal.empty else 0
             except: target_val = 0
             new_target = st.number_input("Bugün kaç dakika çalışacaksın?", value=int(target_val), step=10)
             if st.button("Hedefi Güncelle"):
-                gd = pd.read_csv(GOALS_DATA) if os.path.exists(GOALS_DATA) else pd.DataFrame(columns=["username","date","target_min","status"])
+                gd = safe_read_csv(GOALS_DATA, ["username","date","target_min","status"])
                 gd = gd[~((gd['username']==st.session_state.username) & (gd['date']==str(date.today())))]
                 new_row = pd.DataFrame([[st.session_state.username, str(date.today()), new_target, "Set"]], columns=gd.columns)
                 pd.concat([gd, new_row], ignore_index=True).to_csv(GOALS_DATA, index=False)
@@ -445,8 +466,7 @@ elif st.session_state.logged_in:
                 if st.session_state.timer_active: final_time += time.time() - st.session_state.start_time
                 minutes = int(final_time / 60)
                 if minutes > 0:
-                    try: df = pd.read_csv(WORK_DATA)
-                    except: df = pd.DataFrame(columns=["username","Tarih","Ders","Konu","Soru","Süre"])
+                    df = safe_read_csv(WORK_DATA, ["username","Tarih","Ders","Konu","Soru","Süre"])
                     new_row = pd.DataFrame([[st.session_state.username, str(date.today()), t_ders, "Kronometre", 0, minutes]], columns=df.columns)
                     pd.concat([df, new_row], ignore_index=True).to_csv(WORK_DATA, index=False)
                     st.success(f"{minutes} dakika kaydedildi!")
@@ -461,13 +481,13 @@ elif st.session_state.logged_in:
 
     elif st.session_state.page == 'admin_cizelge':
         st.header("Ödev Atama Merkezi")
-        users = pd.read_csv(USER_DATA)
+        users = safe_read_csv(USER_DATA, ["username", "is_coaching"])
         st_list = users[(users['username'] != ADMIN_USER) & (users['is_coaching'].apply(lambda x: str(x).strip().lower() in ['true', '1', 'yes']))]['username'].tolist()
         if st_list:
             target = st.selectbox("Öğrenci Seç", st_list)
             st.write(f"### 📋 {target} - Ödev Geçmişi")
             try:
-                td = pd.read_csv(TASKS_DATA)
+                td = safe_read_csv(TASKS_DATA, ["username", "tarih", "ders", "konu", "gorev", "durum"])
                 past_tasks = td[td['username'] == target][['tarih', 'ders', 'konu', 'gorev', 'durum']]
                 st.dataframe(past_tasks.sort_values(by="tarih", ascending=False), use_container_width=True)
             except: st.write("Henüz ödev kaydı yok.")
@@ -476,12 +496,12 @@ elif st.session_state.logged_in:
                 bn = st.text_input("Kitap Adı")
                 bc = st.selectbox("Ders", list(CIZELGE_DETAY.keys()), key="new_book_lesson")
                 if st.button("Kitabı Ekle"):
-                    bd = pd.read_csv(BOOKS_DATA)
+                    bd = safe_read_csv(BOOKS_DATA, ["username", "book_name", "category", "status"])
                     pd.concat([bd, pd.DataFrame([[target, bn, bc, "Active"]], columns=bd.columns)]).to_csv(BOOKS_DATA, index=False)
                     st.success("Kitap eklendi!")
             st.subheader("📝 Yeni Ödev Ver")
             try: 
-                bd = pd.read_csv(BOOKS_DATA)
+                bd = safe_read_csv(BOOKS_DATA, ["username", "book_name"])
                 bks = bd[bd['username']==target]['book_name'].tolist()
             except: bks = []
             if bks:
@@ -491,7 +511,7 @@ elif st.session_state.logged_in:
                 s_konu = c3.selectbox("Konu", CIZELGE_DETAY[s_ders])
                 s_detay = st.text_input("Detay (Test No / Sayfa)")
                 if st.button("ÖDEVİ GÖNDER", use_container_width=True):
-                    td = pd.read_csv(TASKS_DATA)
+                    td = safe_read_csv(TASKS_DATA, ["id", "username", "book", "ders", "konu", "gorev", "durum", "tarih"])
                     new_task = pd.DataFrame([[int(time.time()), target, s_kitap, s_ders, s_konu, s_detay, "Yapılmadı", str(date.today())]], columns=td.columns)
                     pd.concat([td, new_task], ignore_index=True).to_csv(TASKS_DATA, index=False)
                     st.success("Ödev gönderildi!")
@@ -501,8 +521,8 @@ elif st.session_state.logged_in:
     elif st.session_state.page == 'my_tasks':
         st.header("Ödevlerim")
         try: 
-            td=pd.read_csv(TASKS_DATA)
-            my=td[td['username']==st.session_state.username]
+            td = safe_read_csv(TASKS_DATA, ["id", "username", "durum", "ders", "konu", "book", "gorev", "tarih"])
+            my = td[td['username']==st.session_state.username]
             if my.empty: st.info("Yapılacak ödevin yok!")
             else:
                 my = my.sort_values(by="durum", ascending=False)
@@ -525,7 +545,7 @@ elif st.session_state.logged_in:
         st.header("Koçuna Sor")
         q = st.text_area("Mesajın")
         if st.button("Gönder"):
-            try: Eq=pd.read_csv(EMIR_QUESTIONS)
+            try: Eq = safe_read_csv(EMIR_QUESTIONS, ["id", "Tarih", "Kullanici", "Soru", "Durum"])
             except: Eq=pd.DataFrame(columns=["id","Tarih","Kullanici","Soru","Durum"])
             pd.concat([Eq, pd.DataFrame([[int(time.time()), str(date.today()), st.session_state.username, q, "Sent"]], columns=Eq.columns)]).to_csv(EMIR_QUESTIONS, index=False); st.success("Mesaj iletildi")
 
@@ -537,12 +557,12 @@ elif st.session_state.logged_in:
             q = st.text_input("Soru")
             a = st.text_input("Cevap")
             if st.button("Ekle"):
-                fd = pd.read_csv(SMART_FLASHCARD_DATA)
+                fd = safe_read_csv(SMART_FLASHCARD_DATA, ["username", "ders", "soru", "cevap", "tarih"])
                 pd.concat([fd, pd.DataFrame([[st.session_state.username,d,q,a,str(date.today())]], columns=fd.columns)]).to_csv(SMART_FLASHCARD_DATA, index=False)
                 st.success("Eklendi")
         with t2:
             try:
-                fd = pd.read_csv(SMART_FLASHCARD_DATA)
+                fd = safe_read_csv(SMART_FLASHCARD_DATA, ["username", "ders", "soru", "cevap"])
                 my = fd[fd['username']==st.session_state.username]
                 if not my.empty:
                     if 'card_index' not in st.session_state: st.session_state.card_index = 0
@@ -557,16 +577,17 @@ elif st.session_state.logged_in:
                         st.session_state.show_ans = False
                         st.rerun()
                 else: st.warning("Henüz kart eklemedin.")
-            except: st.error("Hata")
+            except: 
+                st.error("Kartlar yüklenemedi.")
 
     elif st.session_state.page == 'admin_inbox':
         st.header("Gelen Kutusu")
-        try: st.dataframe(pd.read_csv(EMIR_QUESTIONS))
+        try: st.dataframe(safe_read_csv(EMIR_QUESTIONS, ["id", "Tarih", "Kullanici", "Soru", "Durum"]))
         except: st.write("Mesaj yok")
     
     elif st.session_state.page == 'admin_books':
         st.header("Öğrenci Kitapları")
-        try: st.dataframe(pd.read_csv(BOOKS_DATA))
+        try: st.dataframe(safe_read_csv(BOOKS_DATA, ["username", "book_name"]))
         except: st.write("Kitap yok")
 
     elif st.session_state.page == 'admin_backup':

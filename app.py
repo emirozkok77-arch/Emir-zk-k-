@@ -110,7 +110,7 @@ def init_files():
 
 init_files()
 
-# --- 🎨 CSS: RENKLİ & CANLI (SENİN İSTEDİĞİN) ---
+# --- 🎨 CSS: RENKLİ & CANLI ---
 st.markdown("""
 <style>
     /* GENEL */
@@ -180,7 +180,6 @@ if st.session_state.page == 'landing' and not st.session_state.logged_in:
     
     st.markdown("<h1 style='text-align:center; font-size: 60px; color:#3b82f6; margin-bottom:20px;'>EMİR ÖZKÖK</h1>", unsafe_allow_html=True)
     
-    # --- SENİN İSTEDİĞİN YAZI ---
     st.markdown("""
     <div style='text-align:center; margin-bottom: 40px; padding: 0 5%;'>
         <p style='color:#cbd5e1; font-size:18px; line-height:1.6;'>
@@ -196,7 +195,6 @@ if st.session_state.page == 'landing' and not st.session_state.logged_in:
 
     col1, col2 = st.columns([1, 1.2], gap="large")
     
-    # --- SOL: FOTOĞRAF ---
     with col1:
         found_files = glob.glob("emir_foto.*") + glob.glob("emir*.*")
         photo_path = None
@@ -209,7 +207,6 @@ if st.session_state.page == 'landing' and not st.session_state.logged_in:
             st.markdown(f'''<div style="width:100%; aspect-ratio: 1/1; overflow:hidden; border-radius:15px; border:2px solid #3b82f6; box-shadow: 0 0 30px rgba(59, 130, 246, 0.4);"><img src="data:image/png;base64,{encoded_string}" style="width:100%; height:100%; object-fit:cover;"></div>''', unsafe_allow_html=True)
         else: st.warning("Fotoğraf yok. GitHub'a yükle.")
 
-    # --- SAĞ: GİRİŞ & KAYIT ---
     with col2:
         st.markdown("<div class='login-box'>", unsafe_allow_html=True)
         tab1, tab2 = st.tabs(["🔐 GİRİŞ YAP", "📝 KAYIT OL"])
@@ -257,7 +254,6 @@ if st.session_state.page == 'landing' and not st.session_state.logged_in:
         
         st.markdown("</div>", unsafe_allow_html=True)
         
-        # --- TEAMS LİNKİ ---
         st.markdown("""
         <a href="https://teams.live.com/l/community/FEA37u2Ksl3MjtjcgY" target="_blank" class="teams-link">
         🎁 Bedava hazır programlar ve taktikler için TOPLULUĞA KATIL
@@ -265,7 +261,7 @@ if st.session_state.page == 'landing' and not st.session_state.logged_in:
         """, unsafe_allow_html=True)
 
 # ==========================================
-# 2. DASHBOARD (RENKLİ VERSİYON)
+# 2. DASHBOARD
 # ==========================================
 elif st.session_state.logged_in and st.session_state.page == 'dashboard':
     
@@ -288,7 +284,6 @@ elif st.session_state.logged_in and st.session_state.page == 'dashboard':
     cL, cR = st.columns([1, 2])
     
     with cL:
-        # DURUM RAPORU (MAVİ)
         st.markdown(f"""
         <div class='dashboard-card card-blue' style='height: auto; align-items: flex-start; text-align: left; background: #1e293b; border: 1px solid #3b82f6;'>
             <h3 style='color:#3b82f6;'>📊 DURUM RAPORU</h3>
@@ -312,7 +307,6 @@ elif st.session_state.logged_in and st.session_state.page == 'dashboard':
     with cR:
         if st.session_state.username == ADMIN_USER: st.success("🎓 YÖNETİCİ PANELİ")
         
-        # 1. SATIR (RENKLİ KARTLAR)
         r1_c1, r1_c2, r1_c3 = st.columns(3)
         with r1_c1:
             st.markdown('<div class="dashboard-card card-purple"><h3>📚 ÖDEV</h3><p>Görev Yönetimi</p></div>', unsafe_allow_html=True)
@@ -332,7 +326,6 @@ elif st.session_state.logged_in and st.session_state.page == 'dashboard':
 
         st.markdown("<br>", unsafe_allow_html=True)
 
-        # 2. SATIR
         r2_c1, r2_c2, r2_c3 = st.columns(3)
         with r2_c1:
             st.markdown('<div class="dashboard-card card-blue"><h3>🎯 HEDEF</h3><p>Günlük Plan</p></div>', unsafe_allow_html=True)
@@ -388,13 +381,44 @@ elif st.session_state.logged_in:
                     time.sleep(1); st.rerun()
         except: st.error("Ayar hatası")
 
+    # --- ÖĞRENCİ YETKİLENDİRME (DÜZENLENEBİLİR) ---
     elif st.session_state.page == 'admin_users':
-        st.header("Kayıtlı Öğrenciler")
-        try: st.dataframe(pd.read_csv(USER_DATA))
-        except: st.write("Veri yok")
+        st.header("👥 Öğrenci Yönetimi")
+        st.info("💡 Koçluk yetkisi vermek için 'is_coaching' sütununu 'True' yap ve 'Kaydet'e bas.")
+        
+        try:
+            ud = pd.read_csv(USER_DATA)
+            ud['is_coaching'] = ud['is_coaching'].astype(str) 
+            edited_ud = st.data_editor(ud, num_rows="dynamic")
+            
+            if st.button("💾 Değişiklikleri Kaydet"):
+                edited_ud.to_csv(USER_DATA, index=False)
+                st.success("✅ Öğrenci bilgileri güncellendi!")
+                time.sleep(1); st.rerun()
+        except Exception as e: st.error(f"Hata: {e}")
 
     elif st.session_state.page == 'stats':
-        st.header("📊 PERFORMANS VE ANALİZ")
+        st.header("📊 PERFORMANS VE VERİ GİRİŞİ")
+        
+        with st.expander("➕ Çalışma Ekle / Veri Gir", expanded=True):
+            with st.form("add_work_form"):
+                st.info("Unuttuğun veya geçmiş tarihli çalışmalarını buradan girebilirsin.")
+                c_d1, c_d2 = st.columns(2)
+                s_date = c_d1.date_input("Tarih", date.today())
+                s_ders = c_d2.selectbox("Ders Seç", list(CIZELGE_DETAY.keys()))
+                
+                c_s1, c_s2 = st.columns(2)
+                s_soru = c_s1.number_input("Çözülen Soru Sayısı", min_value=0, step=1)
+                s_sure = c_s2.number_input("Çalışma Süresi (Dakika)", min_value=0, step=10)
+                
+                if st.form_submit_button("KAYDET"):
+                    try: df = pd.read_csv(WORK_DATA)
+                    except: df = pd.DataFrame(columns=["username","Tarih","Ders","Konu","Soru","Süre"])
+                    new_entry = pd.DataFrame([[st.session_state.username, str(s_date), s_ders, "Bireysel Çalışma", s_soru, s_sure]], columns=["username", "Tarih", "Ders", "Konu", "Soru", "Süre"])
+                    pd.concat([df, new_entry], ignore_index=True).to_csv(WORK_DATA, index=False)
+                    st.success(f"{s_ders} dersinden {s_soru} soru kaydedildi!")
+                    time.sleep(1); st.rerun()
+
         try:
             df = pd.read_csv(WORK_DATA)
             if df.empty:

@@ -25,7 +25,7 @@ VIDEO_FOLDER = "ozel_videolar"
 ADMIN_USER = "emirozkok"
 ADMIN_PASS_RAW = "Hbaamaek7!.zemir" 
 
-# --- 📋 MÜFREDAT (SENİN İSTEDİĞİN ÖZEL DÜZEN) ---
+# --- 📋 MÜFREDAT (ÖZEL AYRIŞTIRILMIŞ LİSTE) ---
 CIZELGE_DETAY = {
     # --- TYT SÖZEL & EŞİT AĞIRLIK ---
     "TYT TÜRKÇE": ["Sözcükte Anlam", "Cümlede Anlam", "Paragraf", "Ses Bilgisi", "Yazım Kuralları", "Noktalama İşaretleri", "Sözcük Türleri (İsim-Sıfat-Zamir-Zarf)", "Edat-Bağlaç-Ünlem", "Fiiller", "Ek Fiil", "Fiilimsiler", "Cümlenin Ögeleri", "Cümle Türleri", "Anlatım Bozukluğu"],
@@ -40,7 +40,7 @@ CIZELGE_DETAY = {
     "TYT KİMYA": ["Kimya Bilimi", "Atom ve Periyodik Sistem", "Türler Arası Etkileşim", "Maddenin Halleri", "Doğa ve Kimya", "Kimyanın Temel Kanunları", "Mol Kavramı", "Kimyasal Hesaplamalar", "Karışımlar", "Asitler-Bazlar-Tuzlar", "Kimya Her Yerde"],
     "TYT BİYOLOJİ": ["Canlıların Ortak Özellikleri", "Temel Bileşenler", "Hücre ve Organeller", "Madde Geçişleri", "Sınıflandırma", "Hücre Bölünmeleri (Mitoz-Mayoz)", "Kalıtım", "Ekosistem Ekolojisi"],
 
-    # --- GEOMETRİ (AYRILMADI) ---
+    # --- GEOMETRİ (TEK BAŞLIK) ---
     "GEOMETRİ": ["Doğruda ve Üçgende Açı", "Dik ve Özel Üçgenler", "İkizkenar-Eşkenar Üçgen", "Açıortay-Kenarortay", "Üçgende Alan ve Benzerlik", "Açı Kenar Bağıntıları", "Çokgenler", "Dörtgenler", "Yamuk", "Paralelkenar", "Eşkenar Dörtgen", "Dikdörtgen", "Kare", "Deltoid", "Çemberde Açı ve Uzunluk", "Dairede Alan", "Katı Cisimler", "Analitik Geometri", "Dönüşüm Geometrisi", "Çemberin Analitiği"],
 
     # --- AYT SAYISAL ---
@@ -57,19 +57,33 @@ def make_hashes(p): return hashlib.sha256(str.encode(p)).hexdigest()
 
 def init_files():
     if not os.path.exists(VIDEO_FOLDER): os.makedirs(VIDEO_FOLDER)
-    if not os.path.exists(WORK_DATA) or os.stat(WORK_DATA).st_size == 0:
-        pd.DataFrame(columns=["username", "Tarih", "Ders", "Konu", "Soru", "Süre"]).to_csv(WORK_DATA, index=False)
     
-    files = [VIDEO_DATA, TASKS_DATA, BOOKS_DATA, GOALS_DATA, EMIR_QUESTIONS, SMART_FLASHCARD_DATA]
-    for f in files:
-        if not os.path.exists(f): pd.DataFrame().to_csv(f, index=False)
+    # --- 🛠️ DOSYA ONARIM MERKEZİ ---
+    # Her dosyanın olması gereken sütunları buraya tanımladık.
+    # Dosya yoksa VEYA dosya boşsa (0 bayt), bu sütunlarla yeniden yaratılır.
+    
+    file_definitions = {
+        WORK_DATA: ["username", "Tarih", "Ders", "Konu", "Soru", "Süre"],
+        TASKS_DATA: ["id", "username", "book", "ders", "konu", "gorev", "durum", "tarih"],
+        BOOKS_DATA: ["username", "book_name", "category", "status"],
+        GOALS_DATA: ["username", "date", "target_min", "status"],
+        EMIR_QUESTIONS: ["id", "Tarih", "Kullanici", "Soru", "Durum"],
+        SMART_FLASHCARD_DATA: ["username", "ders", "soru", "cevap", "tarih"],
+        VIDEO_DATA: ["baslik", "dosya_yolu"]
+    }
 
-    if not os.path.exists(USER_DATA):
+    for filename, columns in file_definitions.items():
+        if not os.path.exists(filename) or os.stat(filename).st_size == 0:
+            pd.DataFrame(columns=columns).to_csv(filename, index=False)
+
+    # --- KULLANICI DOSYASI ---
+    if not os.path.exists(USER_DATA) or os.stat(USER_DATA).st_size == 0:
         df = pd.DataFrame(columns=["username", "password", "ad", "telefon", "email", "hedef", "is_coaching", "warnings", "plus"])
         admin_data = pd.DataFrame([[ADMIN_USER, make_hashes(ADMIN_PASS_RAW), "Emir Özkök", "05000000000", "admin@emir.com", "Mühendislik", "True", 0, "True"]], columns=df.columns)
         df = pd.concat([df, admin_data], ignore_index=True)
         df.to_csv(USER_DATA, index=False)
     else:
+        # Admin şifre güncelleme (Güvenlik)
         try:
             ud = pd.read_csv(USER_DATA)
             if ADMIN_USER in ud['username'].values:
@@ -87,6 +101,7 @@ st.markdown("""
     header, footer, #MainMenu, .stDeployButton, div[class^='viewerBadge'] {display: none !important;}
     .block-container { padding-top: 1rem !important; padding-bottom: 0rem !important; }
 
+    /* KARTLAR */
     .dashboard-card {
         border-radius: 20px; padding: 20px; color: white;
         transition: transform 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
@@ -383,7 +398,7 @@ elif st.session_state.logged_in:
     elif st.session_state.page == 'admin_cizelge':
         st.header("Ödev Atama Merkezi")
         users = pd.read_csv(USER_DATA)
-        # KOÇLUK FİLTRESİ
+        # KOÇLUK FİLTRESİ (Güçlendirilmiş)
         st_list = users[(users['username'] != ADMIN_USER) & (users['is_coaching'].apply(lambda x: str(x).strip().lower() in ['true', '1', 'yes']))]['username'].tolist()
         if st_list:
             target = st.selectbox("Öğrenci Seç", st_list)

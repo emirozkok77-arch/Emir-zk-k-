@@ -26,45 +26,48 @@ VIDEO_FOLDER = "ozel_videolar"
 ADMIN_USER = "emirozkok"
 ADMIN_PASS_RAW = "Hbaamaek7!.zemir" 
 
-# --- 📋 MÜFREDAT ---
+# --- 📋 MÜFREDAT (AYRIŞTIRILMIŞ TAM LİSTE) ---
 CIZELGE_DETAY = {
+    # --- TYT SÖZEL & EA ---
     "TYT TÜRKÇE": ["Sözcükte Anlam", "Cümlede Anlam", "Paragraf", "Ses Bilgisi", "Yazım Kuralları", "Noktalama", "Sözcük Türleri", "Fiiller", "Cümlenin Ögeleri", "Anlatım Bozukluğu"],
     "TYT TARİH": ["Tarih Bilimine Giriş", "İlk Çağ", "İslamiyet Öncesi Türk", "İslam Tarihi", "Türk İslam", "Osmanlı (Kuruluş-Yükselme)", "Osmanlı (Duraklama-Dağılma)", "Milli Mücadele", "Atatürk İlkeleri"],
     "TYT COĞRAFYA": ["Doğa ve İnsan", "Dünya'nın Şekli", "Coğrafi Konum", "Harita", "İklim", "Yer Şekilleri", "Nüfus", "Ulaşım", "Ekonomik Faaliyetler", "Afetler"],
     "TYT FELSEFE": ["Felsefeye Giriş", "Bilgi", "Varlık", "Ahlak", "Sanat", "Din", "Siyaset", "Bilim"],
     "TYT DİN": ["Bilgi ve İnanç", "Din ve İslam", "İslam ve İbadet", "Hz. Muhammed", "Vahiy ve Akıl"],
+    
+    # --- TYT SAYISAL ---
     "TYT MATEMATİK": ["Temel Kavramlar", "Sayı Basamakları", "Bölme-Bölünebilme", "EBOB-EKOK", "Rasyonel", "Eşitsizlikler", "Mutlak Değer", "Üslü-Köklü", "Çarpanlara Ayırma", "Oran-Orantı", "Problemler", "Mantık", "Kümeler", "Fonksiyonlar", "Polinomlar", "PKOB"],
     "TYT FİZİK": ["Fizik Bilimi", "Madde ve Özellikleri", "Hareket", "İş-Güç-Enerji", "Isı-Sıcaklık", "Elektrostatik", "Elektrik", "Optik", "Basınç", "Dalgalar"],
     "TYT KİMYA": ["Kimya Bilimi", "Atom", "Türler Arası Etkileşim", "Madden Halleri", "Asit-Baz-Tuz", "Karışımlar", "Kimya Her Yerde"],
     "TYT BİYOLOJİ": ["Canlıların Ortak Öz.", "Temel Bileşenler", "Hücre", "Sınıflandırma", "Bölünmeler", "Kalıtım", "Ekoloji"],
+    
+    # --- ORTAK ---
     "GEOMETRİ": ["Üçgenler", "Çokgenler", "Dörtgenler", "Çember-Daire", "Katı Cisimler", "Analitik", "Dönüşüm"],
+    
+    # --- AYT SAYISAL ---
     "AYT MATEMATİK": ["Fonksiyonlar-2", "Polinomlar-2", "2. Dereceden Denklem", "Parabol", "Eşitsizlikler", "Trigonometri", "Logaritma", "Diziler", "Limit", "Türev", "İntegral"],
     "AYT FİZİK": ["Vektör", "Bağıl Hareket", "Newton", "Atışlar", "İtme-Momentum", "Tork-Denge", "Elektrik-Manyetizma", "Çembersel Hareket", "Harmonik Hareket", "Dalga Mekaniği", "Modern Fizik"],
     "AYT KİMYA": ["Modern Atom", "Gazlar", "Sıvı Çözeltiler", "Enerji", "Hız", "Denge", "Asit-Baz Dengesi", "KÇÇ", "Elektrik", "Organik"],
     "AYT BİYOLOJİ": ["Sistemler", "Komünite", "Genden Proteine", "Canlılık ve Enerji", "Bitki Biyolojisi"],
+    
+    # --- AYT EA/SÖZEL ---
     "AYT EDEBİYAT": ["Şiir Bilgisi", "Edebi Sanatlar", "İslamiyet Öncesi", "Halk Edebiyatı", "Divan", "Tanzimat", "Servet-i Fünun", "Milli Edebiyat", "Cumhuriyet"],
     "AYT TARİH": ["Tarih Bilimi", "İlk Türk Devletleri", "İslam Tarihi", "Türk-İslam", "Osmanlı Tarihi", "İnkılap Tarihi", "Çağdaş Türk Dünya"],
     "AYT COĞRAFYA": ["Biyoçeşitlilik", "Ekosistem", "Nüfus Politikaları", "Türkiye Ekonomisi", "Kültür Bölgeleri", "Küresel Ticaret", "Çevre Sorunları"]
 }
 
 FLASHCARD_DERSLER = list(CIZELGE_DETAY.keys())
-ODEV_DERSLERI = ["TYT MATEMATİK", "AYT MATEMATİK", "GEOMETRİ", "TYT FİZİK", "AYT FİZİK", "TYT KİMYA", "AYT KİMYA", "TYT BİYOLOJİ", "AYT BİYOLOJİ", "TYT TÜRKÇE", "TYT TARİH", "TYT COĞRAFYA", "TYT FELSEFE", "TYT DİN"]
+ODEV_DERSLERI = list(CIZELGE_DETAY.keys()) # Hepsi seçilebilir olsun
 
-# --- 🛡️ HATA KORUMALI DOSYA OKUMA FONKSİYONU ---
+# --- 🛡️ GÜVENLİ DOSYA OKUMA (HATA ENGELLEYİCİ) ---
 def safe_read_csv(file_path, columns):
-    """
-    Dosyayı güvenli bir şekilde okur.
-    Eğer dosya yoksa, boşsa veya bozuksa (EmptyDataError), 
-    yeni ve temiz bir DataFrame oluşturup dosyayı onarır.
-    """
     try:
         if not os.path.exists(file_path) or os.stat(file_path).st_size == 0:
             df = pd.DataFrame(columns=columns)
             df.to_csv(file_path, index=False)
             return df
         return pd.read_csv(file_path)
-    except Exception as e:
-        # Hata durumunda dosyayı sıfırla ve boş döndür (Çökmesini engeller)
+    except Exception:
         df = pd.DataFrame(columns=columns)
         df.to_csv(file_path, index=False)
         return df
@@ -73,7 +76,8 @@ def make_hashes(p): return hashlib.sha256(str.encode(p)).hexdigest()
 
 def init_files():
     if not os.path.exists(VIDEO_FOLDER): os.makedirs(VIDEO_FOLDER)
-    # Başlangıçta tüm dosyaları kontrol et
+    
+    # Dosyaları başlat
     safe_read_csv(WORK_DATA, ["username", "Tarih", "Ders", "Konu", "Soru", "Süre"])
     safe_read_csv(TASKS_DATA, ["id", "username", "book", "ders", "konu", "gorev", "durum", "tarih"])
     safe_read_csv(BOOKS_DATA, ["username", "book_name", "category", "status"])
@@ -83,7 +87,7 @@ def init_files():
     safe_read_csv(TRIALS_DATA, ["username", "tarih", "tur", "yayin", "net"])
     safe_read_csv(VIDEO_DATA, ["baslik", "dosya_yolu"])
 
-    # Kullanıcı Dosyası Özel Kontrol
+    # Kullanıcı dosyası
     if not os.path.exists(USER_DATA) or os.stat(USER_DATA).st_size == 0:
         df = pd.DataFrame(columns=["username", "password", "ad", "telefon", "email", "hedef", "is_coaching", "warnings", "plus"])
         admin_data = pd.DataFrame([[ADMIN_USER, make_hashes(ADMIN_PASS_RAW), "Emir Özkök", "05000000000", "admin@emir.com", "Mühendislik", "True", 0, "True"]], columns=df.columns)
@@ -100,14 +104,14 @@ def init_files():
 
 init_files()
 
-# --- 🎨 CSS: YENİLENMİŞ VE PARLAK ---
+# --- 🎨 CSS: PARLAK & NEON ---
 st.markdown("""
 <style>
     .stApp { background-color: #02040a; color: #e2e8f0; font-family: 'Inter', sans-serif; }
     header, footer, #MainMenu, .stDeployButton, div[class^='viewerBadge'] {display: none !important;}
     .block-container { padding-top: 1rem !important; padding-bottom: 0rem !important; }
 
-    /* DASHBOARD KARTLARI */
+    /* KARTLAR */
     .dashboard-card {
         border-radius: 20px; padding: 20px; color: white;
         transition: transform 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
@@ -119,21 +123,23 @@ st.markdown("""
     .dashboard-card h3 { margin: 0; font-size: 22px; font-weight: 800; text-shadow: 0 2px 4px rgba(0,0,0,0.2); }
     .dashboard-card p { margin: 5px 0 0 0; font-size: 15px; opacity: 0.95; font-weight: 500; }
 
+    /* RENKLER */
     .card-purple { background: linear-gradient(135deg, #9b5de5, #f15bb5); }
     .card-mustard { background: linear-gradient(135deg, #f6d365 0%, #fda085 100%); }
     .card-orange { background: linear-gradient(135deg, #ff9966, #ff5e62); }
     .card-blue { background: linear-gradient(135deg, #00c6ff, #0072ff); }
     .card-dark { background: linear-gradient(135deg, #434343, #000000); }
     
-    /* GİRİŞ SAYFASI (YENİ PARLAK TASARIM) */
+    /* GİRİŞ KUTUSU */
     .login-box {
-        background: rgba(15, 23, 42, 0.85); /* Hafif transparan */
-        padding: 50px; /* Daha geniş */
+        background: rgba(15, 23, 42, 0.9);
+        padding: 30px; 
         border-radius: 20px;
-        border: 2px solid #3b82f6; /* Mavi çerçeve */
-        box-shadow: 0 0 40px rgba(59, 130, 246, 0.4); /* Neon Parlama */
-        margin-top: 20px;
+        border: 2px solid #3b82f6; 
+        box-shadow: 0 0 40px rgba(59, 130, 246, 0.4);
+        margin-top: 10px;
     }
+    
     div.stTextInput > div > div > input, div.stSelectbox > div > button, div.stNumberInput > div > div > input { 
         background-color: #1e293b; color: white; border: 1px solid #334155; 
     }
@@ -149,11 +155,10 @@ st.markdown("""
         display: block; width: 100%; padding: 15px;
         background: linear-gradient(90deg, #2563eb, #1d4ed8);
         color: white !important; text-align: center; border-radius: 8px;
-        text-decoration: none; font-weight: bold; font-size: 16px;
-        margin-top: 25px; box-shadow: 0 4px 20px rgba(37, 99, 235, 0.4); 
-        transition: 0.3s;
+        text-decoration: none; font-weight: bold; font-size: 15px;
+        margin-top: 20px; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3); transition: 0.3s;
     }
-    .teams-link:hover { transform: scale(1.02); box-shadow: 0 6px 25px rgba(37, 99, 235, 0.6); }
+    .teams-link:hover { transform: scale(1.02); box-shadow: 0 6px 20px rgba(37, 99, 235, 0.5); }
 </style>
 """, unsafe_allow_html=True)
 
@@ -167,37 +172,46 @@ if 'start_time' not in st.session_state: st.session_state.start_time = 0
 def go_to(page): st.session_state.page = page; st.rerun()
 
 # ==========================================
-# 1. LANDING PAGE
+# 1. LANDING PAGE (DÜZENLENDİ: SOL FOTO - SAĞ KUTU İÇİ TAB)
 # ==========================================
 if st.session_state.page == 'landing' and not st.session_state.logged_in:
-    st.markdown("<h1 style='text-align:center; font-size: 70px; color:#3b82f6; margin-bottom:30px; text-shadow: 0 0 20px rgba(59,130,246,0.5);'>EMİR ÖZKÖK</h1>", unsafe_allow_html=True)
     
+    st.markdown("<h1 style='text-align:center; font-size: 60px; color:#3b82f6; margin-bottom:20px;'>EMİR ÖZKÖK</h1>", unsafe_allow_html=True)
+    
+    # --- KARŞILAMA YAZISI ---
     st.markdown("""
-    <div style='text-align:center; margin-bottom: 50px; padding: 0 10%;'>
-        <p style='color:#cbd5e1; font-size:20px; line-height:1.6;'>
+    <div style='text-align:center; margin-bottom: 40px; padding: 0 5%;'>
+        <p style='color:#cbd5e1; font-size:18px; line-height:1.6;'>
         Sınav senesinde <b>"keşke böyle bir site olsaydı"</b> diyeceğim şekilde, ihtiyaçlarına göre bir site hazırladım. 
         İçeride yaptıklarını kaydedebileceğin, ne kadar soru çözdüğünü anlık görebileceğin, 
         önemli bilgileri not edip flash kartlarla çalışabileceğin bölümler ve daha nicesi...
         </p>
-        <p style='color:#3b82f6; font-weight:bold; font-size:24px; margin-top:20px;'>
+        <p style='color:#3b82f6; font-weight:bold; font-size:20px; margin-top:15px;'>
         HADİ HEMEN KAYIT OL VE GİRİŞ YAP! 🚀
         </p>
     </div>
     """, unsafe_allow_html=True)
 
     col1, col2 = st.columns([1, 1.2], gap="large")
+    
+    # --- SOL: FOTOĞRAF ---
     with col1:
         found_files = glob.glob("emir_foto.*") + glob.glob("emir*.*")
         photo_path = None
         for f in found_files:
             if f.lower().endswith(('.jpg', '.jpeg', '.png', '.jpg.jpg')): photo_path = f; break
+        
         if photo_path:
             with open(photo_path, "rb") as image_file: encoded_string = base64.b64encode(image_file.read()).decode()
-            st.markdown(f'''<div style="width:100%; aspect-ratio: 1/1; overflow:hidden; border-radius:20px; border:3px solid #3b82f6; box-shadow: 0 0 40px rgba(59, 130, 246, 0.5);"><img src="data:image/png;base64,{encoded_string}" style="width:100%; height:100%; object-fit:cover;"></div>''', unsafe_allow_html=True)
+            st.markdown(f'''<div style="width:100%; aspect-ratio: 1/1; overflow:hidden; border-radius:15px; border:2px solid #3b82f6; box-shadow: 0 0 30px rgba(59, 130, 246, 0.4);"><img src="data:image/png;base64,{encoded_string}" style="width:100%; height:100%; object-fit:cover;"></div>''', unsafe_allow_html=True)
         else: st.warning("Fotoğraf yok.")
 
+    # --- SAĞ: KUTU İÇİNDE GİRİŞ VE KAYIT (SEKMELİ) ---
     with col2:
         st.markdown("<div class='login-box'>", unsafe_allow_html=True)
+        
+        # İŞTE BURASI SENİN İSTEDİĞİN KISIM:
+        # Tek bir kutu var, içinde GİRİŞ ve KAYIT sekmeleri (Tab) var.
         tab1, tab2 = st.tabs(["🔐 GİRİŞ YAP", "📝 KAYIT OL"])
         
         with tab1:
@@ -206,7 +220,6 @@ if st.session_state.page == 'landing' and not st.session_state.logged_in:
             p = st.text_input("Şifre", type='password', key="l_p")
             if st.button("GİRİŞ YAP", use_container_width=True):
                 try:
-                    # GÜVENLİ OKUMA KULLANILDI
                     ud = safe_read_csv(USER_DATA, ["username", "password", "ad", "is_coaching"])
                     hp = make_hashes(p)
                     user = ud[(ud['username']==u) & (ud['password']==hp)]
@@ -214,13 +227,11 @@ if st.session_state.page == 'landing' and not st.session_state.logged_in:
                         st.session_state.logged_in=True
                         st.session_state.username=u
                         st.session_state.realname=user.iloc[0]['ad']
-                        # GÜÇLÜ KONTROL: True, true, 1, yes hepsini kabul et
-                        is_coach = str(user.iloc[0]['is_coaching']).strip().lower() in ['true', '1', 'yes']
-                        st.session_state.is_coaching = is_coach
+                        st.session_state.is_coaching = str(user.iloc[0]['is_coaching']).strip().lower() in ['true', '1', 'yes']
                         st.session_state.page='dashboard'
                         st.rerun()
                     else: st.error("Hatalı bilgiler.")
-                except Exception as e: st.error(f"Giriş hatası: {e}")
+                except Exception as e: st.error(f"Hata: {e}")
         
         with tab2:
             st.markdown("<br>", unsafe_allow_html=True)
@@ -230,20 +241,27 @@ if st.session_state.page == 'landing' and not st.session_state.logged_in:
             rh = st.selectbox("Hedefin (Bölüm)", ["Sayısal", "Eşit Ağırlık", "Sözel", "Dil"], key="r_h")
             rt = st.text_input("Telefon", key="r_t", max_chars=11)
             rm = st.text_input("E-posta", key="r_m")
+            
             if st.button("KAYDI TAMAMLA", use_container_width=True):
                 if not n or not ru or not rp: st.error("Boş alan bırakma.")
                 else:
                     try:
-                        ud = safe_read_csv(USER_DATA, ["username", "password", "ad", "telefon", "email", "hedef", "is_coaching", "warnings", "plus"])
+                        ud = safe_read_csv(USER_DATA, ["username", "password", "ad", "telefon", "email", "hedef", "is_coaching"])
                         if ru not in ud['username'].values:
                             new_user = pd.DataFrame([[ru, make_hashes(rp), n, rt, rm, rh, "False", 0, "False"]], columns=ud.columns)
                             pd.concat([ud, new_user], ignore_index=True).to_csv(USER_DATA, index=False)
-                            st.success("Kayıt Başarılı! Giriş yapabilirsiniz.")
+                            st.success("Kayıt Başarılı! 'Giriş Yap' sekmesine tıkla.")
                         else: st.error("Kullanıcı adı alınmış.")
-                    except: st.error("Veritabanı hatası.")
+                    except: st.error("Kayıt hatası.")
         
         st.markdown("</div>", unsafe_allow_html=True)
-        st.markdown("""<a href="https://teams.live.com/l/community/FEA37u2Ksl3MjtjcgY" target="_blank" class="teams-link">🎁 Bedava hazır programlar ve taktikler için TOPLULUĞA KATIL</a>""", unsafe_allow_html=True)
+        
+        # TEAMS LİNKİ (KUTUNUN ALTINDA)
+        st.markdown("""
+        <a href="https://teams.live.com/l/community/FEA37u2Ksl3MjtjcgY" target="_blank" class="teams-link">
+        🎁 Bedava hazır programlar ve taktikler için TOPLULUĞA KATIL
+        </a>
+        """, unsafe_allow_html=True)
 
 # ==========================================
 # 2. DASHBOARD
@@ -285,7 +303,6 @@ elif st.session_state.logged_in and st.session_state.page == 'dashboard':
         r1_c1, r1_c2, r1_c3 = st.columns(3)
         with r1_c1:
             st.markdown('<div class="dashboard-card card-purple"><h3>📚 ÖDEV</h3><p>Görev Yönetimi</p></div>', unsafe_allow_html=True)
-            # BURADA GÜVENLİ KONTROL
             if st.session_state.get('is_coaching', False):
                 if st.button("GÖREVLERİ AÇ", use_container_width=True): 
                     if st.session_state.username == ADMIN_USER: go_to('admin_cizelge')
@@ -317,7 +334,7 @@ elif st.session_state.logged_in and st.session_state.page == 'dashboard':
             with a3: 
                 if st.button("GELEN MESAJLAR"): go_to('admin_inbox')
             with a4:
-                if st.button("💾 YEDEKLE / GERİ YÜKLE"): go_to('admin_backup')
+                if st.button("💾 YEDEKLE"): go_to('admin_backup')
 
 # ==========================================
 # 3. İÇ SAYFALAR
@@ -366,22 +383,49 @@ elif st.session_state.logged_in:
         
         with tab_calisma:
             st.subheader("1. Soru Girişi (Ders Ders)")
-            st.info("Bugün çözdüğün soruları buradan gir.")
             selected_date = st.date_input("Hangi Tarih?", date.today())
-            c_d1, c_d2, c_d3 = st.columns([2, 1, 1])
-            s_ders = c_d1.selectbox("Ders Seç", list(CIZELGE_DETAY.keys()))
-            s_soru = c_d2.number_input("Soru Sayısı", min_value=0, step=5)
-            if c_d3.button("Soru Ekle"):
-                if s_soru > 0:
-                    df = safe_read_csv(WORK_DATA, ["username","Tarih","Ders","Konu","Soru","Süre"])
-                    new_row = pd.DataFrame([[st.session_state.username, str(selected_date), s_ders, "Soru Çözümü", s_soru, 0]], columns=df.columns)
-                    pd.concat([df, new_row], ignore_index=True).to_csv(WORK_DATA, index=False)
-                    st.success(f"{s_ders}: {s_soru} soru eklendi!")
-                else: st.warning("Soru sayısı gir.")
+            
+            # --- TOPLU GİRİŞ TABLOSU ---
+            if 'bulk_data' not in st.session_state:
+                st.session_state.bulk_data = pd.DataFrame([{"Ders": "TYT MATEMATİK", "Soru": 0}])
+
+            edited_table = st.data_editor(
+                st.session_state.bulk_data,
+                num_rows="dynamic",
+                column_config={
+                    "Ders": st.column_config.SelectboxColumn("Ders", options=list(CIZELGE_DETAY.keys()), required=True),
+                    "Soru": st.column_config.NumberColumn("Soru Sayısı", min_value=0, step=1)
+                },
+                use_container_width=True
+            )
+            
+            if st.button("💾 LİSTEYİ KAYDET", type="primary"):
+                try: df = safe_read_csv(WORK_DATA, ["username","Tarih","Ders","Konu","Soru","Süre"])
+                except: df = pd.DataFrame(columns=["username","Tarih","Ders","Konu","Soru","Süre"])
+                
+                new_entries = []
+                for index, row in edited_table.iterrows():
+                    if row["Soru"] > 0:
+                        new_entries.append({
+                            "username": st.session_state.username,
+                            "Tarih": str(selected_date),
+                            "Ders": row["Ders"],
+                            "Konu": "Soru Çözümü",
+                            "Soru": row["Soru"],
+                            "Süre": 0
+                        })
+                
+                if new_entries:
+                    new_df = pd.DataFrame(new_entries)
+                    df = pd.concat([df, new_df], ignore_index=True)
+                    df.to_csv(WORK_DATA, index=False)
+                    st.success(f"✅ {len(new_entries)} ders kaydedildi!")
+                    st.session_state.bulk_data = pd.DataFrame([{"Ders": "TYT MATEMATİK", "Soru": 0}]) # Sıfırla
+                    time.sleep(1); st.rerun()
+                else: st.warning("Soru sayısı girmedin.")
 
             st.write("---")
-            st.subheader("2. Günlük Toplam Çalışma Süresi")
-            st.info("Bugün toplam ne kadar çalıştın?")
+            st.subheader("2. Günlük Toplam Süre")
             c_h, c_m, c_b = st.columns([1, 1, 1])
             saat = c_h.number_input("Saat", 0, 24, 0)
             dakika = c_m.number_input("Dakika", 0, 59, 0)

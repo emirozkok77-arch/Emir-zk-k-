@@ -59,6 +59,7 @@ def safe_read_csv(file_path, columns):
             return df
         return pd.read_csv(file_path)
     except Exception:
+        # Hata durumunda dosyayı sıfırla
         df = pd.DataFrame(columns=columns)
         df.to_csv(file_path, index=False)
         return df
@@ -93,7 +94,7 @@ def init_files():
 
 init_files()
 
-# --- 🎨 CSS: PARLAK & NEON ---
+# --- 🎨 CSS ---
 st.markdown("""
 <style>
     .stApp { background-color: #02040a; color: #e2e8f0; font-family: 'Inter', sans-serif; }
@@ -165,7 +166,7 @@ if st.session_state.page == 'landing' and not st.session_state.logged_in:
     
     st.markdown("<h1 style='text-align:center; font-size: 70px; color:#3b82f6; margin-bottom:30px; text-shadow: 0 0 20px rgba(59,130,246,0.5);'>EMİR ÖZKÖK</h1>", unsafe_allow_html=True)
     
-    # --- YENİ DÜZEN: SOL (YAZI/FOTO) - SAĞ (KUTU) ---
+    # --- DÜZEN: SOL (YAZI/FOTO) - SAĞ (TEK KUTU + TAB) ---
     col1, col2 = st.columns([1.5, 1], gap="large")
     
     # --- SOL: FOTO VE YAZI ---
@@ -209,6 +210,7 @@ if st.session_state.page == 'landing' and not st.session_state.logged_in:
             p = st.text_input("Şifre", type='password', key="l_p")
             if st.button("GİRİŞ YAP", use_container_width=True):
                 try:
+                    # HATA VERMEYEN OKUMA
                     ud = safe_read_csv(USER_DATA, ["username", "password", "ad", "is_coaching"])
                     hp = make_hashes(p)
                     user = ud[(ud['username']==u) & (ud['password']==hp)]
@@ -216,7 +218,9 @@ if st.session_state.page == 'landing' and not st.session_state.logged_in:
                         st.session_state.logged_in=True
                         st.session_state.username=u
                         st.session_state.realname=user.iloc[0]['ad']
-                        st.session_state.is_coaching = str(user.iloc[0]['is_coaching']).strip().lower() in ['true', '1', 'yes']
+                        # GÜÇLÜ KONTROL: Koçluk yetkisi
+                        is_coach = str(user.iloc[0]['is_coaching']).strip().lower() in ['true', '1', 'yes']
+                        st.session_state.is_coaching = is_coach
                         st.session_state.page='dashboard'
                         st.rerun()
                     else: st.error("Hatalı bilgiler.")

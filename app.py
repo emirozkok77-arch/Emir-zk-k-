@@ -25,25 +25,29 @@ VIDEO_FOLDER = "ozel_videolar"
 ADMIN_USER = "emirozkok"
 ADMIN_PASS_RAW = "Hbaamaek7!.zemir" 
 
-# --- 📋 MÜFREDAT (TAM LİSTE) ---
+# --- 📋 MÜFREDAT (SENİN İSTEDİĞİN ÖZEL DÜZEN) ---
 CIZELGE_DETAY = {
-    "TYT MATEMATİK": ["Temel Kavramlar", "Sayı Basamakları", "Bölme-Bölünebilme", "EBOB-EKOK", "Rasyonel Sayılar", "Basit Eşitsizlikler", "Mutlak Değer", "Üslü Sayılar", "Köklü Sayılar", "Çarpanlara Ayırma", "Oran-Orantı", "Problemler (Tümü)", "Mantık", "Kümeler", "Fonksiyonlar", "Polinomlar", "Permütasyon-Kombinasyon-Olasılık"],
-    "AYT MATEMATİK": ["Fonksiyonlar (II)", "Polinomlar (II)", "2. Dereceden Denklemler", "Parabol", "Eşitsizlikler", "Trigonometri", "Logaritma", "Diziler", "Limit", "Türev", "İntegral"],
-    "GEOMETRİ (TYT-AYT)": ["Üçgenler", "Çokgenler", "Dörtgenler", "Özel Dörtgenler", "Çember ve Daire", "Katı Cisimler", "Analitik Geometri", "Dönüşüm Geometrisi", "Çemberin Analitiği"],
-    "TYT FİZİK": ["Fizik Bilimine Giriş", "Madde ve Özellikleri", "Hareket ve Kuvvet", "Enerji", "Isı ve Sıcaklık", "Elektrostatik", "Elektrik Akımı", "Optik", "Basınç ve Kaldırma", "Dalgalar"],
-    "AYT FİZİK": ["Vektörler", "Bağıl Hareket", "Newton'un Yasaları", "Atışlar", "İş-Güç-Enerji", "İtme ve Momentum", "Tork ve Denge", "Elektrik ve Manyetizma", "Çembersel Hareket", "Basit Harmonik Hareket", "Dalga Mekaniği", "Modern Fizik"],
-    "TYT KİMYA": ["Kimya Bilimi", "Atom ve Periyodik Sistem", "Türler Arası Etkileşim", "Maddenin Halleri", "Doğa ve Kimya", "Kimyanın Kanunları", "Mol", "Karışımlar", "Asit-Baz-Tuz", "Kimya Her Yerde"],
-    "AYT KİMYA": ["Modern Atom Teorisi", "Gazlar", "Sıvı Çözeltiler", "Enerji", "Hız", "Denge", "Asit-Baz Dengesi", "KÇÇ", "Elektrokimya", "Organik Kimya"],
-    "TYT BİYOLOJİ": ["Canlıların Ortak Özellikleri", "Temel Bileşenler", "Hücre", "Sınıflandırma", "Bölünmeler", "Kalıtım", "Ekoloji"],
-    "AYT BİYOLOJİ": ["Sistemler (Sinir, Endokrin, Duyu, Destek, Sindirim, Dolaşım, Solunum, Üriner, Üreme)", "Komünite Ekolojisi", "Genden Proteine", "Canlılık ve Enerji", "Bitki Biyolojisi"],
-    "TYT TÜRKÇE": ["Sözcükte Anlam", "Cümlede Anlam", "Paragraf", "Ses Bilgisi", "Yazım Kuralları", "Noktalama", "Sözcük Türleri", "Fiiller", "Cümlenin Ögeleri", "Anlatım Bozukluğu"],
-    "AYT EDEBİYAT": ["Güzel Sanatlar ve Edebiyat", "Coşku ve Heyecanı Dile Getiren Metinler (Şiir)", "Olay Çevresinde Oluşan Metinler", "Öğretici Metinler", "Edebi Akımlar", "İslamiyet Öncesi Türk Edb.", "İslami Dönem Türk Edb.", "Divan Edebiyatı", "Halk Edebiyatı", "Tanzimat Edebiyatı", "Servet-i Fünun", "Fecr-i Ati", "Milli Edebiyat", "Cumhuriyet Dönemi"],
-    "TYT TARİH": ["Tarih Bilimine Giriş", "İlk Çağ Uygarlıkları", "İslamiyet Öncesi Türk Tarihi", "İslam Tarihi", "Türk İslam Tarihi", "Osmanlı Devleti (Kuruluş-Yükselme)", "Osmanlı (Duraklama-Gerileme-Dağılma)", "Kurtuluş Savaşı Hazırlık", "Kurtuluş Savaşı Cepheler", "İnkılap Tarihi"],
-    "AYT TARİH": ["Tarih Bilimi", "Uygarlığın Doğuşu", "İlk Türk Devletleri", "İslam Tarihi ve Uygarlığı", "Türk-İslam Devletleri", "Türkiye Tarihi", "Beylikten Devlete", "Dünya Gücü Osmanlı", "Arayış Yılları", "Diplomasi ve Değişim", "En Uzun Yüzyıl", "Milli Mücadele", "Atatürkçülük ve İnkılaplar", "İki Savaş Arasındaki Dönem", "II. Dünya Savaşı", "Soğuk Savaş Dönemi", "Küreselleşen Dünya"],
-    "TYT COĞRAFYA": ["Doğa ve İnsan", "Dünya'nın Şekli ve Hareketleri", "Coğrafi Konum", "Harita Bilgisi", "İklim Bilgisi", "Yerin Şekillenmesi", "Nüfus ve Yerleşme", "Ulaşım Yolları", "Ekonomik Faaliyetler", "Bölgeler", "Doğal Afetler"],
-    "AYT COĞRAFYA": ["Biyoçeşitlilik", "Ekosistem", "Nüfus Politikaları", "Türkiye'de Nüfus", "Türkiye'de Ekonomi", "Türkiye'de Tarım-Hayvancılık", "Türkiye'de Madenler-Sanayi", "Kültür Bölgeleri", "Küresel Ticaret", "Turizm", "Çevre Sorunları"],
-    "FELSEFE GRUBU": ["Felsefeye Giriş", "Bilgi Felsefesi", "Varlık Felsefesi", "Ahlak Felsefesi", "Sanat Felsefesi", "Din Felsefesi", "Siyaset Felsefesi", "Bilim Felsefesi", "Psikoloji", "Sosyoloji", "Mantık"],
-    "DİN KÜLTÜRÜ": ["Bilgi ve İnanç", "Din ve İslam", "İslam ve İbadet", "Gençlik ve Değerler", "Gönül Coğrafyamız", "Allah İnsan İlişkisi", "Hz. Muhammed", "Vahiy ve Akıl", "İslam Düşüncesinde Yorumlar"]
+    # --- TYT SÖZEL & EŞİT AĞIRLIK ---
+    "TYT TÜRKÇE": ["Sözcükte Anlam", "Cümlede Anlam", "Paragraf", "Ses Bilgisi", "Yazım Kuralları", "Noktalama İşaretleri", "Sözcük Türleri (İsim-Sıfat-Zamir-Zarf)", "Edat-Bağlaç-Ünlem", "Fiiller", "Ek Fiil", "Fiilimsiler", "Cümlenin Ögeleri", "Cümle Türleri", "Anlatım Bozukluğu"],
+    "TYT TARİH": ["Tarih Bilimine Giriş", "İlk Çağ Uygarlıkları", "İslamiyet Öncesi Türk Tarihi", "İslam Tarihi", "Türk İslam Tarihi", "Osmanlı (Kuruluş-Yükselme)", "Osmanlı (Duraklama-Gerileme-Dağılma)", "Milli Mücadele Hazırlık", "Kurtuluş Savaşı", "Atatürk İlke ve İnkılapları"],
+    "TYT COĞRAFYA": ["Doğa ve İnsan", "Dünya'nın Şekli ve Hareketleri", "Coğrafi Konum", "Harita Bilgisi", "Atmosfer ve İklim", "Yerin Şekillenmesi", "Nüfus ve Yerleşme", "Ulaşım Yolları", "Ekonomik Faaliyetler", "Bölgeler", "Doğal Afetler"],
+    "TYT FELSEFE": ["Felsefeye Giriş", "Bilgi Felsefesi", "Varlık Felsefesi", "Ahlak Felsefesi", "Sanat Felsefesi", "Din Felsefesi", "Siyaset Felsefesi", "Bilim Felsefesi"],
+    "TYT DİN KÜLTÜRÜ": ["Bilgi ve İnanç", "Din ve İslam", "İslam ve İbadet", "Gençlik ve Değerler", "Gönül Coğrafyamız", "Allah İnsan İlişkisi", "Hz. Muhammed", "Vahiy ve Akıl", "İslam Düşüncesinde Yorumlar"],
+
+    # --- TYT SAYISAL ---
+    "TYT MATEMATİK": ["Temel Kavramlar", "Sayı Basamakları", "Bölme-Bölünebilme", "EBOB-EKOK", "Rasyonel Sayılar", "Basit Eşitsizlikler", "Mutlak Değer", "Üslü Sayılar", "Köklü Sayılar", "Çarpanlara Ayırma", "Oran-Orantı", "Problemler (Tümü)", "Mantık", "Kümeler", "Fonksiyonlar", "Polinomlar", "Permütasyon-Kombinasyon", "Olasılık"],
+    "TYT FİZİK": ["Fizik Bilimine Giriş", "Madde ve Özellikleri", "Hareket ve Kuvvet", "İş-Güç-Enerji", "Isı ve Sıcaklık", "Elektrostatik", "Elektrik Akımı", "Optik", "Basınç ve Kaldırma", "Dalgalar"],
+    "TYT KİMYA": ["Kimya Bilimi", "Atom ve Periyodik Sistem", "Türler Arası Etkileşim", "Maddenin Halleri", "Doğa ve Kimya", "Kimyanın Temel Kanunları", "Mol Kavramı", "Kimyasal Hesaplamalar", "Karışımlar", "Asitler-Bazlar-Tuzlar", "Kimya Her Yerde"],
+    "TYT BİYOLOJİ": ["Canlıların Ortak Özellikleri", "Temel Bileşenler", "Hücre ve Organeller", "Madde Geçişleri", "Sınıflandırma", "Hücre Bölünmeleri (Mitoz-Mayoz)", "Kalıtım", "Ekosistem Ekolojisi"],
+
+    # --- GEOMETRİ (AYRILMADI) ---
+    "GEOMETRİ": ["Doğruda ve Üçgende Açı", "Dik ve Özel Üçgenler", "İkizkenar-Eşkenar Üçgen", "Açıortay-Kenarortay", "Üçgende Alan ve Benzerlik", "Açı Kenar Bağıntıları", "Çokgenler", "Dörtgenler", "Yamuk", "Paralelkenar", "Eşkenar Dörtgen", "Dikdörtgen", "Kare", "Deltoid", "Çemberde Açı ve Uzunluk", "Dairede Alan", "Katı Cisimler", "Analitik Geometri", "Dönüşüm Geometrisi", "Çemberin Analitiği"],
+
+    # --- AYT SAYISAL ---
+    "AYT MATEMATİK": ["Fonksiyonlar (II)", "Polinomlar (II)", "2. Dereceden Denklemler", "Parabol", "Eşitsizlikler", "Trigonometri", "Logaritma", "Diziler", "Limit ve Süreklilik", "Türev", "İntegral"],
+    "AYT FİZİK": ["Vektörler", "Bağıl Hareket", "Newton'un Hareket Yasaları", "Atışlar", "İş-Güç-Enerji (AYT)", "İtme ve Momentum", "Tork ve Denge", "Kütle Merkezi", "Basit Makineler", "Elektrik Alan ve Potansiyel", "Paralel Levhalar", "Manyetizma", "Alternatif Akım", "Çembersel Hareket", "Basit Harmonik Hareket", "Dalga Mekaniği", "Atom Fiziği", "Modern Fizik"],
+    "AYT KİMYA": ["Modern Atom Teorisi", "Gazlar", "Sıvı Çözeltiler", "Kimyasal Tepkimelerde Enerji", "Hız", "Denge", "Asit-Baz Dengesi", "Çözünürlük Dengesi (KÇÇ)", "Kimya ve Elektrik", "Karbon Kimyası", "Organik Kimya"],
+    "AYT BİYOLOJİ": ["Sinir Sistemi", "Endokrin Sistem", "Duyu Organları", "Destek ve Hareket", "Sindirim Sistemi", "Dolaşım Sistemi", "Solunum Sistemi", "Üriner Sistem", "Üreme Sistemi", "Komünite Ekolojisi", "Genden Proteine", "Canlılık ve Enerji", "Bitki Biyolojisi"]
 }
 
 FLASHCARD_DERSLER = list(CIZELGE_DETAY.keys())
@@ -66,12 +70,11 @@ def init_files():
         df = pd.concat([df, admin_data], ignore_index=True)
         df.to_csv(USER_DATA, index=False)
     else:
-        # Admin şifresini güncelle ve is_coaching tipini sabitle
         try:
             ud = pd.read_csv(USER_DATA)
             if ADMIN_USER in ud['username'].values:
                 ud.loc[ud['username'] == ADMIN_USER, 'password'] = make_hashes(ADMIN_PASS_RAW)
-                ud.loc[ud['username'] == ADMIN_USER, 'is_coaching'] = "True"
+                ud['is_coaching'] = ud['is_coaching'].astype(str)
                 ud.to_csv(USER_DATA, index=False)
         except: pass
 
@@ -181,8 +184,8 @@ if st.session_state.page == 'landing' and not st.session_state.logged_in:
                         if ru not in ud['username'].values:
                             new_user = pd.DataFrame([[ru, make_hashes(rp), n, rt, rm, rh, "False", 0, "False"]], columns=ud.columns)
                             pd.concat([ud, new_user], ignore_index=True).to_csv(USER_DATA, index=False)
-                            st.success("Kayıt Başarılı! Giriş yapabilirsiniz.")
-                        else: st.error("Bu kullanıcı adı alınmış.")
+                            st.success("Kayıt Başarılı!")
+                        else: st.error("Kullanıcı adı alınmış.")
                     except: st.error("Veritabanı hatası.")
         st.markdown("</div>", unsafe_allow_html=True)
         st.markdown("""<a href="https://teams.live.com/l/community/FEA37u2Ksl3MjtjcgY" target="_blank" class="teams-link">🎁 Bedava hazır programlar ve taktikler için TOPLULUĞA KATIL</a>""", unsafe_allow_html=True)
@@ -289,31 +292,13 @@ elif st.session_state.logged_in:
                     st.success("Bilgiler güncellendi!"); time.sleep(1); st.rerun()
         except: st.error("Ayar hatası")
 
-    # --- ÖĞRENCİ LİSTESİ (HATA DÜZELTİLDİ: SÜTUN CONFIG) ---
     elif st.session_state.page == 'admin_users':
         st.header("👥 Öğrenci Yönetimi")
         st.info("❗ Koçluk yetkisi vermek için 'is_coaching' kutucuğunu işaretle ve KAYDET butonuna bas.")
-        
         ud = pd.read_csv(USER_DATA)
-        
-        # 'is_coaching' sütununu boolean'a çevir (True/False)
         ud['is_coaching'] = ud['is_coaching'].apply(lambda x: str(x).lower() in ['true', '1', 'yes'])
-        
-        # Data editor ile checkbox göster
-        edited_df = st.data_editor(
-            ud, 
-            num_rows="dynamic",
-            column_config={
-                "is_coaching": st.column_config.CheckboxColumn(
-                    "Koçluk Öğrencisi mi?",
-                    help="İşaretliyse öğrenciye ödev verebilirsin.",
-                    default=False,
-                )
-            }
-        )
-        
+        edited_df = st.data_editor(ud, num_rows="dynamic", column_config={"is_coaching": st.column_config.CheckboxColumn("Koçluk Öğrencisi mi?", default=False)})
         if st.button("💾 DEĞİŞİKLİKLERİ KAYDET"):
-            # Kaydederken tekrar string 'True'/'False' yap
             edited_df['is_coaching'] = edited_df['is_coaching'].astype(str)
             edited_df.to_csv(USER_DATA, index=False)
             st.success("Veriler güncellendi!")
@@ -395,18 +380,11 @@ elif st.session_state.logged_in:
                 time.sleep(1); st.rerun()
             st.markdown(f"<h1 style='font-size: 60px; color: #3b82f6;'>{int(curr_time//60):02d}:{int(curr_time%60):02d}</h1>", unsafe_allow_html=True)
 
-    # --- ÖDEV ATAMA PANELİ (DÜZELTİLDİ: KOÇLUK FİLTRESİ) ---
     elif st.session_state.page == 'admin_cizelge':
         st.header("Ödev Atama Merkezi")
         users = pd.read_csv(USER_DATA)
-        
-        # --- KRİTİK FİLTRE DÜZELTMESİ ---
-        # Hem string 'True'/'true' hem de boolean True değerlerini kabul eder.
-        st_list = users[
-            (users['username'] != ADMIN_USER) & 
-            (users['is_coaching'].apply(lambda x: str(x).strip().lower() in ['true', '1', 'yes']))
-        ]['username'].tolist()
-        
+        # KOÇLUK FİLTRESİ
+        st_list = users[(users['username'] != ADMIN_USER) & (users['is_coaching'].apply(lambda x: str(x).strip().lower() in ['true', '1', 'yes']))]['username'].tolist()
         if st_list:
             target = st.selectbox("Öğrenci Seç", st_list)
             st.write(f"### 📋 {target} - Ödev Geçmişi")
@@ -418,7 +396,7 @@ elif st.session_state.logged_in:
             st.write("---")
             with st.expander("➕ Yeni Kitap Ekle"):
                 bn = st.text_input("Kitap Adı")
-                bc = st.selectbox("Ders", list(CIZELGE_DETAY.keys()))
+                bc = st.selectbox("Ders", list(CIZELGE_DETAY.keys()), key="new_book_lesson")
                 if st.button("Kitabı Ekle"):
                     bd = pd.read_csv(BOOKS_DATA)
                     pd.concat([bd, pd.DataFrame([[target, bn, bc, "Active"]], columns=bd.columns)]).to_csv(BOOKS_DATA, index=False)
@@ -431,7 +409,7 @@ elif st.session_state.logged_in:
             if bks:
                 c1, c2, c3 = st.columns(3)
                 s_kitap = c1.selectbox("Kitap", bks)
-                s_ders = c2.selectbox("Ders", list(CIZELGE_DETAY.keys()))
+                s_ders = c2.selectbox("Ders", list(CIZELGE_DETAY.keys()), key="assign_task_lesson")
                 s_konu = c3.selectbox("Konu", CIZELGE_DETAY[s_ders])
                 s_detay = st.text_input("Detay (Test No / Sayfa)")
                 if st.button("ÖDEVİ GÖNDER", use_container_width=True):

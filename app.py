@@ -110,38 +110,48 @@ def init_files():
 
 init_files()
 
-# --- 🎨 CSS ---
+# --- 🎨 CSS: RENKLİ & CANLI (SENİN İSTEDİĞİN) ---
 st.markdown("""
 <style>
-    .stApp { background-color: #000000; color: #e2e8f0; font-family: 'Segoe UI', sans-serif; }
-    header, footer, #MainMenu, .stDeployButton, div[class^='viewerBadge'] {display: none !important;}
-    .block-container { padding-top: 1rem !important; padding-bottom: 0rem !important; }
-
-    /* DASHBOARD KARTLARI */
-    .dashboard-card {
-        background-color: #0f172a; border: 1px solid #1e293b; border-radius: 12px;
-        padding: 20px; height: 180px;
-        display: flex; flex-direction: column; justify-content: space-between;
-        transition: 0.3s;
-    }
-    .dashboard-card:hover { border-color: #3b82f6; box-shadow: 0 0 15px rgba(59, 130, 246, 0.2); }
-    .card-title { font-size: 18px; font-weight: bold; color: #e2e8f0; display: flex; align-items: center; gap: 10px; }
-    .card-desc { font-size: 13px; color: #94a3b8; margin-top: 5px; }
-
-    /* NORMAL BUTONLAR (MAVİ ÇERÇEVELİ) */
-    div.stButton > button {
-        background-color: transparent; color: #3b82f6; border: 1px solid #3b82f6;
-        width: 100%; font-weight: bold; border-radius: 8px; transition: 0.3s;
-    }
-    div.stButton > button:hover { background-color: #3b82f6; color: white; }
+    /* GENEL */
+    .stApp { background-color: #02040a; color: #e2e8f0; font-family: 'Inter', sans-serif; }
     
+    /* GİZLEME KODLARI */
+    header {visibility: hidden !important; display: none !important;}
+    footer {visibility: hidden !important; display: none !important; height: 0px !important;}
+    #MainMenu {visibility: hidden !important;}
+    .stDeployButton {display:none !important;}
+    .block-container { padding-top: 0rem !important; padding-bottom: 0rem !important; }
+
+    /* DASHBOARD KARTLARI (RENKLİ) */
+    .dashboard-card {
+        border-radius: 20px; padding: 20px; color: white;
+        transition: transform 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        height: 150px; display: flex; flex-direction: column;
+        justify-content: center; align-items: center; text-align: center;
+        margin-bottom: 10px; border: none;
+    }
+    .dashboard-card:hover { transform: translateY(-5px); box-shadow: 0 10px 15px rgba(0,0,0,0.3); }
+    .dashboard-card h3 { margin: 0; font-size: 22px; font-weight: 800; text-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+    .dashboard-card p { margin: 5px 0 0 0; font-size: 15px; opacity: 0.95; font-weight: 500; }
+
+    /* RENKLER */
+    .card-purple { background: linear-gradient(135deg, #9b5de5, #f15bb5); }
+    .card-mustard { background: linear-gradient(135deg, #f6d365 0%, #fda085 100%); }
+    .card-orange { background: linear-gradient(135deg, #ff9966, #ff5e62); }
+    .card-blue { background: linear-gradient(135deg, #00c6ff, #0072ff); }
+    .card-dark { background: linear-gradient(135deg, #434343, #000000); }
+    
+    /* GİRİŞ SAYFASI */
     .login-box {
         background: #0f172a; padding: 40px; border-radius: 12px;
-        border: 1px solid #1e293b; box-shadow: 0 10px 40px rgba(0,0,0,0.7); margin-top: 20px;
+        border: 1px solid #1e293b; box-shadow: 0 10px 40px rgba(0,0,0,0.7);
+        margin-top: 20px;
     }
     div.stTextInput > div > div > input, div.stSelectbox > div > button { background-color: #1e293b; color: white; border: 1px solid #334155; }
-    
-    /* TEAMS BUTONU (GRADIENT) */
+    div.stButton > button { background-color: transparent; color: white; border: 1px solid rgba(255,255,255,0.2); font-weight: bold; width: 100%; }
+
+    /* TEAMS LINK STİLİ */
     .teams-link {
         display: block; width: 100%; padding: 15px;
         background: linear-gradient(90deg, #2563eb, #1d4ed8);
@@ -170,7 +180,7 @@ if st.session_state.page == 'landing' and not st.session_state.logged_in:
     
     st.markdown("<h1 style='text-align:center; font-size: 60px; color:#3b82f6; margin-bottom:20px;'>EMİR ÖZKÖK</h1>", unsafe_allow_html=True)
     
-    # --- YENİ KARŞILAMA METNİ ---
+    # --- SENİN İSTEDİĞİN YAZI ---
     st.markdown("""
     <div style='text-align:center; margin-bottom: 40px; padding: 0 5%;'>
         <p style='color:#cbd5e1; font-size:18px; line-height:1.6;'>
@@ -196,7 +206,7 @@ if st.session_state.page == 'landing' and not st.session_state.logged_in:
         
         if photo_path:
             with open(photo_path, "rb") as image_file: encoded_string = base64.b64encode(image_file.read()).decode()
-            st.markdown(f'''<div style="width:100%; aspect-ratio: 1/1; overflow:hidden; border-radius:15px; border:2px solid #3b82f6; box-shadow: 0 0 30px rgba(59, 130, 246, 0.3);"><img src="data:image/png;base64,{encoded_string}" style="width:100%; height:100%; object-fit:cover;"></div>''', unsafe_allow_html=True)
+            st.markdown(f'''<div style="width:100%; aspect-ratio: 1/1; overflow:hidden; border-radius:15px; border:2px solid #3b82f6; box-shadow: 0 0 30px rgba(59, 130, 246, 0.4);"><img src="data:image/png;base64,{encoded_string}" style="width:100%; height:100%; object-fit:cover;"></div>''', unsafe_allow_html=True)
         else: st.warning("Fotoğraf yok. GitHub'a yükle.")
 
     # --- SAĞ: GİRİŞ & KAYIT ---
@@ -255,7 +265,7 @@ if st.session_state.page == 'landing' and not st.session_state.logged_in:
         """, unsafe_allow_html=True)
 
 # ==========================================
-# 2. DASHBOARD
+# 2. DASHBOARD (RENKLİ VERSİYON)
 # ==========================================
 elif st.session_state.logged_in and st.session_state.page == 'dashboard':
     
@@ -270,56 +280,81 @@ elif st.session_state.logged_in and st.session_state.page == 'dashboard':
     
     st.markdown("---")
 
-    # Çözülen soruyu hesapla
     try:
         df_w = pd.read_csv(WORK_DATA)
         total_solved = df_w[df_w['username'] == st.session_state.username]['Soru'].sum()
     except: total_solved = 0
+
+    cL, cR = st.columns([1, 2])
     
-    # YÖNETİCİ PANELİ
-    if st.session_state.username == ADMIN_USER:
-        st.info("🎓 YÖNETİCİ MODU")
-        a1, a2, a3 = st.columns(3)
-        with a1:
-             st.markdown("<div class='dashboard-card'><div class='card-title'>👥 Öğrenciler</div><div class='card-desc'>Kayıtlı öğrencileri yönet</div></div>", unsafe_allow_html=True)
-             if st.button("Öğrenci Listesi"): go_to('admin_users')
-        with a2:
-             st.markdown("<div class='dashboard-card'><div class='card-title'>📚 Ödev Ata</div><div class='card-desc'>Kitap ve görev ver</div></div>", unsafe_allow_html=True)
-             if st.button("Ödev Paneli"): go_to('admin_cizelge')
-        with a3:
-             st.markdown("<div class='dashboard-card'><div class='card-title'>📩 Mesajlar</div><div class='card-desc'>Gelen sorular</div></div>", unsafe_allow_html=True)
-             if st.button("Gelen Kutusu"): go_to('admin_inbox')
+    with cL:
+        # DURUM RAPORU (MAVİ)
+        st.markdown(f"""
+        <div class='dashboard-card card-blue' style='height: auto; align-items: flex-start; text-align: left; background: #1e293b; border: 1px solid #3b82f6;'>
+            <h3 style='color:#3b82f6;'>📊 DURUM RAPORU</h3>
+            <p style='font-size:30px; font-weight:bold; color:white;'>{int(total_solved)} <span style='font-size:16px; font-weight:normal; color:#aaa;'>Soru Çözüldü</span></p>
+        </div>
+        <div style='height:20px;'></div>
+        <div class='dashboard-card card-blue' style='height: auto; align-items: flex-start; text-align: left;'>
+            <h3>📢 GÜNCEL AKIŞ</h3>
+            <p>Karargah Bildirimleri</p>
+            <hr style='width:100%; border-color:rgba(255,255,255,0.3);'>
+        """, unsafe_allow_html=True)
+        if os.path.exists(VIDEO_DATA):
+            try:
+                vids = pd.read_csv(VIDEO_DATA).iloc[::-1].head(3)
+                for _, r in vids.iterrows():
+                    st.write(f"**{r['baslik']}**")
+                    if os.path.exists(r['dosya_yolu']): st.video(r['dosya_yolu'])
+            except: st.write("Video yok.")
+        st.markdown("</div>", unsafe_allow_html=True)
     
-    st.write("")
-    
-    # GENEL MENÜ
-    r1, r2, r3 = st.columns(3)
-    with r1:
-        st.markdown(f"<div class='dashboard-card'><div class='card-title'>📢 Çözülen Soru</div><div class='card-desc' style='font-size:24px; color:white;'>{int(total_solved)}</div></div>", unsafe_allow_html=True)
-    with r2:
-        st.markdown("<div class='dashboard-card'><div class='card-title'>⏱️ Odaklanma</div><div class='card-desc'>Kronometre Başlat</div></div>", unsafe_allow_html=True)
-        if st.button("BAŞLA", key="btn_odak"): go_to('kronometre')
-    with r3:
-        st.markdown("<div class='dashboard-card'><div class='card-title'>🎯 Günlük Hedef</div><div class='card-desc'>Süre Hedefi Koy</div></div>", unsafe_allow_html=True)
-        if st.button("HEDEF KOY", key="btn_hedef"): go_to('goals')
+    with cR:
+        if st.session_state.username == ADMIN_USER: st.success("🎓 YÖNETİCİ PANELİ")
         
-    st.write("")
-    
-    r4, r5, r6 = st.columns(3)
-    with r4:
-        st.markdown("<div class='dashboard-card'><div class='card-title'>📚 Ödevlerim</div><div class='card-desc'>Sadece Koçluk Öğrencileri</div></div>", unsafe_allow_html=True)
-        if st.session_state.get('is_coaching', False):
-            if st.button("GÖREVLERİ AÇ"): go_to('my_tasks')
-        else: st.button("🔒 KİLİTLİ", disabled=True)
-    with r5:
-        st.markdown("<div class='dashboard-card'><div class='card-title'>💬 Emir'e Sor</div><div class='card-desc'>Direkt İletişim</div></div>", unsafe_allow_html=True)
-        if st.button("MESAJ GÖNDER"): go_to('ask_emir')
-    with r6:
-        st.markdown("<div class='dashboard-card'><div class='card-title'>🧠 Kartlar</div><div class='card-desc'>Akıllı Tekrar</div></div>", unsafe_allow_html=True)
-        if st.button("ÇALIŞ"): go_to('flashcards')
-    
-    st.write("")
-    if st.button("📊 DETAYLI İSTATİSTİK VE ANALİZ"): go_to('stats')
+        # 1. SATIR (RENKLİ KARTLAR)
+        r1_c1, r1_c2, r1_c3 = st.columns(3)
+        with r1_c1:
+            st.markdown('<div class="dashboard-card card-purple"><h3>📚 ÖDEV</h3><p>Görev Yönetimi</p></div>', unsafe_allow_html=True)
+            if st.session_state.get('is_coaching', False):
+                if st.button("GÖREVLERİ AÇ", use_container_width=True): 
+                    if st.session_state.username == ADMIN_USER: go_to('admin_cizelge')
+                    else: go_to('my_tasks')
+            else: st.button("🔒 KİLİTLİ", disabled=True, use_container_width=True)
+        
+        with r1_c2:
+            st.markdown('<div class="dashboard-card card-mustard"><h3>⏱️ ODAK</h3><p>Kronometre</p></div>', unsafe_allow_html=True)
+            if st.button("BAŞLA", use_container_width=True): go_to('kronometre')
+            
+        with r1_c3:
+            st.markdown('<div class="dashboard-card card-orange"><h3>📊 ANALİZ</h3><p>İstatistikler</p></div>', unsafe_allow_html=True)
+            if st.button("İNCELE", use_container_width=True): go_to('stats')
+
+        st.markdown("<br>", unsafe_allow_html=True)
+
+        # 2. SATIR
+        r2_c1, r2_c2, r2_c3 = st.columns(3)
+        with r2_c1:
+            st.markdown('<div class="dashboard-card card-blue"><h3>🎯 HEDEF</h3><p>Günlük Plan</p></div>', unsafe_allow_html=True)
+            if st.button("HEDEF KOY", use_container_width=True): go_to('goals')
+            
+        with r2_c2:
+            st.markdown('<div class="dashboard-card card-dark"><h3>💬 SORU SOR</h3><p>Emir Hoca</p></div>', unsafe_allow_html=True)
+            if st.button("MESAJ AT", use_container_width=True): go_to('ask_emir')
+
+        with r2_c3:
+            st.markdown('<div class="dashboard-card card-purple" style="background: linear-gradient(135deg, #E91E63, #9C27B0);"><h3>🧠 KARTLAR</h3><p>Flashcards</p></div>', unsafe_allow_html=True)
+            if st.button("ÇALIŞ", use_container_width=True): go_to('flashcards')
+
+        if st.session_state.username == ADMIN_USER:
+            st.markdown("---")
+            a1, a2, a3 = st.columns(3)
+            with a1: 
+                if st.button("KİTAPLARI YÖNET"): go_to('admin_books')
+            with a2: 
+                if st.button("ÖĞRENCİ YETKİ"): go_to('admin_users')
+            with a3: 
+                if st.button("GELEN MESAJLAR"): go_to('admin_inbox')
 
 # ==========================================
 # 3. DİĞER SAYFALAR

@@ -50,7 +50,7 @@ CIZELGE_DETAY = {
 FLASHCARD_DERSLER = list(CIZELGE_DETAY.keys())
 ODEV_DERSLERI = ["TYT MATEMATİK", "AYT MATEMATİK", "GEOMETRİ", "TYT FİZİK", "AYT FİZİK", "TYT KİMYA", "AYT KİMYA", "TYT BİYOLOJİ", "AYT BİYOLOJİ", "TYT TÜRKÇE", "TYT TARİH", "TYT COĞRAFYA", "TYT FELSEFE", "TYT DİN"]
 
-# --- 🛡️ GÜVENLİ DOSYA OKUMA (HATA ENGELLEYİCİ) ---
+# --- 🛡️ GÜVENLİ DOSYA OKUMA ---
 def safe_read_csv(file_path, columns):
     try:
         if not os.path.exists(file_path) or os.stat(file_path).st_size == 0:
@@ -68,7 +68,6 @@ def make_hashes(p): return hashlib.sha256(str.encode(p)).hexdigest()
 def init_files():
     if not os.path.exists(VIDEO_FOLDER): os.makedirs(VIDEO_FOLDER)
     
-    # Tüm dosyaları güvenli modda başlat
     safe_read_csv(WORK_DATA, ["username", "Tarih", "Ders", "Konu", "Soru", "Süre"])
     safe_read_csv(TASKS_DATA, ["id", "username", "book", "ders", "konu", "gorev", "durum", "tarih"])
     safe_read_csv(BOOKS_DATA, ["username", "book_name", "category", "status"])
@@ -78,7 +77,6 @@ def init_files():
     safe_read_csv(TRIALS_DATA, ["username", "tarih", "tur", "yayin", "net"])
     safe_read_csv(VIDEO_DATA, ["baslik", "dosya_yolu"])
 
-    # Kullanıcı dosyası özel kontrol
     if not os.path.exists(USER_DATA) or os.stat(USER_DATA).st_size == 0:
         df = pd.DataFrame(columns=["username", "password", "ad", "telefon", "email", "hedef", "is_coaching", "warnings", "plus"])
         admin_data = pd.DataFrame([[ADMIN_USER, make_hashes(ADMIN_PASS_RAW), "Emir Özkök", "05000000000", "admin@emir.com", "Mühendislik", "True", 0, "True"]], columns=df.columns)
@@ -95,7 +93,7 @@ def init_files():
 
 init_files()
 
-# --- 🎨 CSS: PARLAK & NEON (GÜNCEL) ---
+# --- 🎨 CSS: PARLAK & NEON ---
 st.markdown("""
 <style>
     .stApp { background-color: #02040a; color: #e2e8f0; font-family: 'Inter', sans-serif; }
@@ -119,14 +117,13 @@ st.markdown("""
     .card-blue { background: linear-gradient(135deg, #00c6ff, #0072ff); }
     .card-dark { background: linear-gradient(135deg, #434343, #000000); }
     
-    /* GİRİŞ VE KAYIT KUTULARI (YAN YANA) */
-    .auth-box {
+    .login-box {
         background: rgba(15, 23, 42, 0.9);
         padding: 40px; 
         border-radius: 20px;
         border: 2px solid #3b82f6; 
-        box-shadow: 0 0 30px rgba(59, 130, 246, 0.3);
-        height: 100%;
+        box-shadow: 0 0 40px rgba(59, 130, 246, 0.4);
+        margin-top: 20px;
     }
     
     div.stTextInput > div > div > input, div.stSelectbox > div > button, div.stNumberInput > div > div > input { 
@@ -162,86 +159,98 @@ if 'start_time' not in st.session_state: st.session_state.start_time = 0
 def go_to(page): st.session_state.page = page; st.rerun()
 
 # ==========================================
-# 1. LANDING PAGE (YENİ DÜZEN: SOL GİRİŞ - SAĞ KAYIT)
+# 1. LANDING PAGE
 # ==========================================
 if st.session_state.page == 'landing' and not st.session_state.logged_in:
     
-    # FOTOĞRAF VE BAŞLIK (ORTADA)
-    c_img, c_tit = st.columns([1, 4])
-    with c_img:
+    st.markdown("<h1 style='text-align:center; font-size: 70px; color:#3b82f6; margin-bottom:30px; text-shadow: 0 0 20px rgba(59,130,246,0.5);'>EMİR ÖZKÖK</h1>", unsafe_allow_html=True)
+    
+    # --- YENİ DÜZEN: SOL (YAZI/FOTO) - SAĞ (KUTU) ---
+    col1, col2 = st.columns([1.5, 1], gap="large")
+    
+    # --- SOL: FOTO VE YAZI ---
+    with col1:
+        st.markdown("""
+        <div style='text-align:left; margin-bottom: 30px;'>
+            <p style='color:#e2e8f0; font-size:22px; line-height:1.6; font-weight: 500;'>
+            Sınav senesinde <b>"keşke böyle bir site olsaydı"</b> diyeceğim şekilde, ihtiyaçlarına göre bir site hazırladım.
+            </p>
+            <p style='color:#94a3b8; font-size:18px; margin-top:20px;'>
+            ✅ Yaptıklarını kaydet, gelişimini gör.<br>
+            ✅ Ne kadar soru çözdüğünü anlık takip et.<br>
+            ✅ Önemli bilgileri not et, flash kartlarla çalış.<br>
+            ✅ Denemelerini analiz et ve yükselişe geç!
+            </p>
+            <p style='color:#3b82f6; font-weight:bold; font-size:26px; margin-top:30px;'>
+            HADİ HEMEN BAŞLA! 🚀
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+        
         found_files = glob.glob("emir_foto.*") + glob.glob("emir*.*")
         photo_path = None
         for f in found_files:
             if f.lower().endswith(('.jpg', '.jpeg', '.png', '.jpg.jpg')): photo_path = f; break
+        
         if photo_path:
             with open(photo_path, "rb") as image_file: encoded_string = base64.b64encode(image_file.read()).decode()
-            st.markdown(f'''<div style="width:100%; aspect-ratio: 1/1; overflow:hidden; border-radius:50%; border:3px solid #3b82f6; box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);"><img src="data:image/png;base64,{encoded_string}" style="width:100%; height:100%; object-fit:cover;"></div>''', unsafe_allow_html=True)
-    
-    with c_tit:
-        st.markdown("<h1 style='font-size: 60px; color:#3b82f6; margin:0; padding-top:20px;'>EMİR ÖZKÖK</h1>", unsafe_allow_html=True)
-    
-    st.markdown("""
-    <div style='text-align:center; margin: 30px 0; padding: 0 5%;'>
-        <p style='color:#cbd5e1; font-size:18px; line-height:1.6;'>
-        Sınav senesinde <b>"keşke böyle bir site olsaydı"</b> diyeceğim şekilde, ihtiyaçlarına göre bir site hazırladım. 
-        İçeride yaptıklarını kaydedebileceğin, ne kadar soru çözdüğünü anlık görebileceğin, 
-        önemli bilgileri not edip flash kartlarla çalışabileceğin bölümler ve daha nicesi...
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
+            st.markdown(f'''<div style="width:100%; aspect-ratio: 16/9; overflow:hidden; border-radius:20px; border:2px solid #3b82f6; box-shadow: 0 0 30px rgba(59, 130, 246, 0.3);"><img src="data:image/png;base64,{encoded_string}" style="width:100%; height:100%; object-fit:cover;"></div>''', unsafe_allow_html=True)
 
-    # --- AYRIK GİRİŞ VE KAYIT KUTULARI ---
-    c_login, c_register = st.columns(2, gap="large")
-    
-    # SOL: GİRİŞ YAP
-    with c_login:
-        st.markdown("<div class='auth-box'>", unsafe_allow_html=True)
-        st.subheader("🔐 GİRİŞ YAP")
-        u = st.text_input("Kullanıcı Adı", key="l_u")
-        p = st.text_input("Şifre", type='password', key="l_p")
-        if st.button("GİRİŞ", use_container_width=True):
-            try:
-                ud = safe_read_csv(USER_DATA, ["username", "password", "ad", "is_coaching"])
-                hp = make_hashes(p)
-                user = ud[(ud['username']==u) & (ud['password']==hp)]
-                if not user.empty:
-                    st.session_state.logged_in=True
-                    st.session_state.username=u
-                    st.session_state.realname=user.iloc[0]['ad']
-                    # GÜÇLÜ KONTROL
-                    st.session_state.is_coaching = str(user.iloc[0]['is_coaching']).strip().lower() in ['true', '1', 'yes']
-                    st.session_state.page='dashboard'
-                    st.rerun()
-                else: st.error("Hatalı bilgiler.")
-            except Exception as e: st.error(f"Sistem hatası: {e}")
-        st.markdown("</div>", unsafe_allow_html=True)
-
-    # SAĞ: KAYIT OL
-    with c_register:
-        st.markdown("<div class='auth-box'>", unsafe_allow_html=True)
-        st.subheader("📝 KAYIT OL")
-        n = st.text_input("Ad Soyad", key="r_n")
-        ru = st.text_input("Kullanıcı Adı", key="r_u")
-        rp = st.text_input("Şifre (Min 7 karakter)", type='password', key="r_p")
-        rh = st.selectbox("Hedefin (Bölüm)", ["Sayısal", "Eşit Ağırlık", "Sözel", "Dil"], key="r_h")
-        c_r1, c_r2 = st.columns(2)
-        rt = c_r1.text_input("Telefon", key="r_t", max_chars=11)
-        rm = c_r2.text_input("E-posta", key="r_m")
+    # --- SAĞ: TEK KUTU (TABLI SİSTEM) ---
+    with col2:
+        st.markdown("<div class='login-box'>", unsafe_allow_html=True)
         
-        if st.button("KAYDI TAMAMLA", use_container_width=True):
-            if not n or not ru or not rp: st.error("Boş alan bırakma.")
-            else:
+        # --- TABLAR (GİRİŞ / KAYIT) ---
+        tab1, tab2 = st.tabs(["🔐 GİRİŞ YAP", "📝 KAYIT OL"])
+        
+        with tab1:
+            st.markdown("<br>", unsafe_allow_html=True)
+            u = st.text_input("Kullanıcı Adı", key="l_u")
+            p = st.text_input("Şifre", type='password', key="l_p")
+            if st.button("GİRİŞ YAP", use_container_width=True):
                 try:
-                    ud = safe_read_csv(USER_DATA, ["username", "password", "ad", "telefon", "email", "hedef", "is_coaching"])
-                    if ru not in ud['username'].values:
-                        new_user = pd.DataFrame([[ru, make_hashes(rp), n, rt, rm, rh, "False", 0, "False"]], columns=ud.columns)
-                        pd.concat([ud, new_user], ignore_index=True).to_csv(USER_DATA, index=False)
-                        st.success("Kayıt Başarılı! Soldan giriş yap.")
-                    else: st.error("Kullanıcı adı alınmış.")
-                except: st.error("Kayıt hatası.")
+                    ud = safe_read_csv(USER_DATA, ["username", "password", "ad", "is_coaching"])
+                    hp = make_hashes(p)
+                    user = ud[(ud['username']==u) & (ud['password']==hp)]
+                    if not user.empty:
+                        st.session_state.logged_in=True
+                        st.session_state.username=u
+                        st.session_state.realname=user.iloc[0]['ad']
+                        st.session_state.is_coaching = str(user.iloc[0]['is_coaching']).strip().lower() in ['true', '1', 'yes']
+                        st.session_state.page='dashboard'
+                        st.rerun()
+                    else: st.error("Hatalı bilgiler.")
+                except Exception as e: st.error(f"Hata: {e}")
+        
+        with tab2:
+            st.markdown("<br>", unsafe_allow_html=True)
+            n = st.text_input("Ad Soyad", key="r_n")
+            ru = st.text_input("Kullanıcı Adı", key="r_u")
+            rp = st.text_input("Şifre (Min 7 karakter)", type='password', key="r_p")
+            rh = st.selectbox("Hedefin (Bölüm)", ["Sayısal", "Eşit Ağırlık", "Sözel", "Dil"], key="r_h")
+            rt = st.text_input("Telefon", key="r_t", max_chars=11)
+            rm = st.text_input("E-posta", key="r_m")
+            
+            if st.button("KAYDI TAMAMLA", use_container_width=True):
+                if not n or not ru or not rp: st.error("Boş alan bırakma.")
+                else:
+                    try:
+                        ud = safe_read_csv(USER_DATA, ["username", "password", "ad", "telefon", "email", "hedef", "is_coaching"])
+                        if ru not in ud['username'].values:
+                            new_user = pd.DataFrame([[ru, make_hashes(rp), n, rt, rm, rh, "False", 0, "False"]], columns=ud.columns)
+                            pd.concat([ud, new_user], ignore_index=True).to_csv(USER_DATA, index=False)
+                            st.success("Kayıt Başarılı! 'Giriş Yap' sekmesinden gir.")
+                        else: st.error("Kullanıcı adı alınmış.")
+                    except: st.error("Kayıt hatası.")
+        
         st.markdown("</div>", unsafe_allow_html=True)
-
-    st.markdown("""<a href="https://teams.live.com/l/community/FEA37u2Ksl3MjtjcgY" target="_blank" class="teams-link">🎁 Bedava hazır programlar ve taktikler için TOPLULUĞA KATIL</a>""", unsafe_allow_html=True)
+        
+        # --- TEAMS LİNKİ ---
+        st.markdown("""
+        <a href="https://teams.live.com/l/community/FEA37u2Ksl3MjtjcgY" target="_blank" class="teams-link">
+        🎁 Bedava hazır programlar ve taktikler için TOPLULUĞA KATIL
+        </a>
+        """, unsafe_allow_html=True)
 
 # ==========================================
 # 2. DASHBOARD
@@ -314,7 +323,7 @@ elif st.session_state.logged_in and st.session_state.page == 'dashboard':
             with a3: 
                 if st.button("GELEN MESAJLAR"): go_to('admin_inbox')
             with a4:
-                if st.button("💾 YEDEKLE"): go_to('admin_backup')
+                if st.button("💾 YEDEKLE / GERİ YÜKLE"): go_to('admin_backup')
 
 # ==========================================
 # 3. İÇ SAYFALAR
@@ -364,19 +373,48 @@ elif st.session_state.logged_in:
         with tab_calisma:
             st.subheader("1. Soru Girişi (Ders Ders)")
             selected_date = st.date_input("Hangi Tarih?", date.today())
-            c_d1, c_d2, c_d3 = st.columns([2, 1, 1])
-            s_ders = c_d1.selectbox("Ders Seç", list(CIZELGE_DETAY.keys()))
-            s_soru = c_d2.number_input("Soru Sayısı", min_value=0, step=5)
-            if c_d3.button("Soru Ekle"):
-                if s_soru > 0:
-                    df = safe_read_csv(WORK_DATA, ["username","Tarih","Ders","Konu","Soru","Süre"])
-                    new_row = pd.DataFrame([[st.session_state.username, str(selected_date), s_ders, "Soru Çözümü", s_soru, 0]], columns=df.columns)
-                    pd.concat([df, new_row], ignore_index=True).to_csv(WORK_DATA, index=False)
-                    st.success(f"{s_ders}: {s_soru} soru eklendi!")
-                else: st.warning("Soru sayısı gir.")
+            
+            # --- TOPLU GİRİŞ TABLOSU ---
+            if 'bulk_data' not in st.session_state:
+                st.session_state.bulk_data = pd.DataFrame([{"Ders": "TYT MATEMATİK", "Soru": 0}])
+
+            edited_table = st.data_editor(
+                st.session_state.bulk_data,
+                num_rows="dynamic",
+                column_config={
+                    "Ders": st.column_config.SelectboxColumn("Ders", options=list(CIZELGE_DETAY.keys()), required=True),
+                    "Soru": st.column_config.NumberColumn("Soru Sayısı", min_value=0, step=1)
+                },
+                use_container_width=True
+            )
+            
+            if st.button("💾 LİSTEYİ KAYDET", type="primary"):
+                try: df = safe_read_csv(WORK_DATA, ["username","Tarih","Ders","Konu","Soru","Süre"])
+                except: df = pd.DataFrame(columns=["username","Tarih","Ders","Konu","Soru","Süre"])
+                
+                new_entries = []
+                for index, row in edited_table.iterrows():
+                    if row["Soru"] > 0:
+                        new_entries.append({
+                            "username": st.session_state.username,
+                            "Tarih": str(selected_date),
+                            "Ders": row["Ders"],
+                            "Konu": "Soru Çözümü",
+                            "Soru": row["Soru"],
+                            "Süre": 0
+                        })
+                
+                if new_entries:
+                    new_df = pd.DataFrame(new_entries)
+                    df = pd.concat([df, new_df], ignore_index=True)
+                    df.to_csv(WORK_DATA, index=False)
+                    st.success(f"✅ {len(new_entries)} ders kaydedildi!")
+                    st.session_state.bulk_data = pd.DataFrame([{"Ders": "TYT MATEMATİK", "Soru": 0}]) # Sıfırla
+                    time.sleep(1); st.rerun()
+                else: st.warning("Soru sayısı girmedin.")
 
             st.write("---")
-            st.subheader("2. Günlük Toplam Çalışma Süresi")
+            st.subheader("2. Günlük Toplam Süre")
             c_h, c_m, c_b = st.columns([1, 1, 1])
             saat = c_h.number_input("Saat", 0, 24, 0)
             dakika = c_m.number_input("Dakika", 0, 59, 0)

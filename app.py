@@ -7,6 +7,7 @@ import time
 import base64
 import glob
 import random
+import re
 
 # --- SAYFA AYARLARI ---
 st.set_page_config(page_title="Emir Özkök Akademi", layout="wide", page_icon="🧿", initial_sidebar_state="collapsed")
@@ -940,7 +941,7 @@ elif st.session_state.logged_in:
                         
             st.markdown("<br>", unsafe_allow_html=True)
 
-            # --- 3. AKILLI YENİ KİTAP EKLEME (ÖNERİ SİSTEMLİ) ---
+            # --- 3. AKILLI YENİ KİTAP EKLEME (ÖNERİ SİSTEMLİ VE GİZLİ ZORLUKLU) ---
             st.markdown("### 📚 Sisteme Yeni Kitap Ekle")
             with st.expander("➕ Yeni Kitap Tanımla (Önerileri Görmek İçin Tıklayın)"):
                 bc = st.selectbox("Ders Seç", list(CIZELGE_DETAY.keys()), key="new_book_lesson")
@@ -954,7 +955,8 @@ elif st.session_state.logged_in:
                 if secilen_oneri == "✍️ Kendi Kitabımı Yazacağım (Manuel)":
                     bn = st.text_input("Kitap Adını Yazın:")
                 elif secilen_oneri != "Listeden Seç...":
-                    bn = secilen_oneri
+                    # ÖĞRENCİ GÖRMESİN DİYE ZORLUK SEVİYESİNİ (Parantez içini) TEMİZLİYORUZ
+                    bn = re.sub(r'\s*\([^)]*\)$', '', secilen_oneri)
                     
                 st.markdown("<br>", unsafe_allow_html=True)
                 if st.button("Kitabı Ekle"):
@@ -962,7 +964,7 @@ elif st.session_state.logged_in:
                         new_book_df = pd.DataFrame([[target, bn, bc, "Active"]], columns=["username", "book_name", "category", "status"])
                         bd_all = pd.concat([bd_all, new_book_df], ignore_index=True)
                         bd_all.to_csv(BOOKS_DATA, index=False)
-                        st.success(f"Harika! {bn} sisteme eklendi.")
+                        st.success(f"Harika! '{bn}' sisteme eklendi.")
                         time.sleep(1); st.rerun()
                     else:
                         st.error("Lütfen listeden bir kitap seçin veya adını yazın.")
@@ -983,7 +985,7 @@ elif st.session_state.logged_in:
                 filtered_books = active_books[active_books['category'] == filter_ders]['book_name'].tolist()
                 s_kitap = c_kitap.selectbox("2️⃣ Kitabı Seç", filtered_books)
                 
-                secilen_ders = filter_ders # Zaten filtreledik
+                secilen_ders = filter_ders 
                 
                 # KİTAP RÖNTGENİ
                 st.markdown(f"""
@@ -1013,7 +1015,6 @@ elif st.session_state.logged_in:
                     st.balloons()
                     st.success("🎉 İNANILMAZ! Öğrenci bu kitabın müfredatındaki tüm konuları bitirmiş!")
                     if st.button("🏆 Kitabı Bitirilenler Listesine Arşivle", type="primary", use_container_width=True):
-                        # Kitabın statüsünü Completed yap
                         bd_all.loc[(bd_all['username']==target) & (bd_all['book_name']==s_kitap), 'status'] = 'Completed'
                         bd_all.to_csv(BOOKS_DATA, index=False)
                         st.rerun()

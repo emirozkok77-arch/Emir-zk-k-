@@ -127,7 +127,7 @@ def render_floating_timer():
         """, unsafe_allow_html=True)
 
 
-# --- 🎨 CSS: PARLAK & NEON ---
+# --- 🎨 CSS: GENEL ---
 st.markdown("""
 <style>
     .stApp { background-color: #02040a; color: #e2e8f0; font-family: 'Inter', sans-serif; }
@@ -150,15 +150,6 @@ st.markdown("""
     .card-orange { background: linear-gradient(135deg, #ff9966, #ff5e62); }
     .card-blue { background: linear-gradient(135deg, #00c6ff, #0072ff); }
     .card-dark { background: linear-gradient(135deg, #434343, #000000); }
-    
-    .login-box {
-        background: rgba(15, 23, 42, 0.9);
-        padding: 30px; 
-        border-radius: 20px;
-        border: 2px solid #3b82f6; 
-        box-shadow: 0 0 40px rgba(59, 130, 246, 0.4);
-        margin-top: 10px;
-    }
     
     div.stTextInput > div > div > input, div.stSelectbox > div > button, div.stNumberInput > div > div > input { 
         background-color: #1e293b; color: white; border: 1px solid #334155; 
@@ -196,6 +187,35 @@ def go_to(page): st.session_state.page = page; st.rerun()
 # ==========================================
 if st.session_state.page == 'landing' and not st.session_state.logged_in:
     
+    # KUTUYU DİREKT SEKMELERİN (TABS) ÜSTÜNE GİYDİREN PROFESYONEL CSS
+    st.markdown("""
+    <style>
+    /* Sekme panelini (Tabs) neon kutuya çevirir */
+    div[data-testid="stTabs"] {
+        background: rgba(15, 23, 42, 0.9);
+        padding: 25px; 
+        border-radius: 20px;
+        border: 2px solid #3b82f6; 
+        box-shadow: 0 0 40px rgba(59, 130, 246, 0.4);
+    }
+    /* Giriş ve Kayıt butonlarını tam ortadan (50/50) ikiye böler */
+    button[data-baseweb="tab"] {
+        flex-grow: 1 !important;
+        text-align: center !important;
+        justify-content: center !important;
+        font-size: 18px !important;
+        font-weight: 800 !important;
+    }
+    /* Altındaki gereksiz çizgileri temizler */
+    div[data-baseweb="tab-highlight"] {
+        background-color: #3b82f6 !important;
+    }
+    div[data-baseweb="tab-border"] {
+        background-color: transparent !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
     st.markdown("<h1 style='text-align:center; font-size: 70px; color:#3b82f6; margin-bottom:30px; text-shadow: 0 0 20px rgba(59,130,246,0.5);'>EMİR ÖZKÖK</h1>", unsafe_allow_html=True)
     
     col1, col2 = st.columns([1.5, 1], gap="large")
@@ -228,8 +248,7 @@ if st.session_state.page == 'landing' and not st.session_state.logged_in:
             st.markdown(f'''<div style="width:100%; aspect-ratio: 16/9; overflow:hidden; border-radius:20px; border:2px solid #3b82f6; box-shadow: 0 0 30px rgba(59, 130, 246, 0.3);"><img src="data:image/png;base64,{encoded_string}" style="width:100%; height:100%; object-fit:cover;"></div>''', unsafe_allow_html=True)
 
     with col2:
-        st.markdown("<div class='login-box'>", unsafe_allow_html=True)
-        
+        # BOŞ DİV'LER SİLİNDİ, SEKMELER DOĞRUDAN OLUŞTURULDU
         tab1, tab2 = st.tabs(["🔐 GİRİŞ YAP", "📝 KAYIT OL"])
         
         with tab1:
@@ -271,8 +290,6 @@ if st.session_state.page == 'landing' and not st.session_state.logged_in:
                             st.success("Kayıt Başarılı! 'Giriş Yap' sekmesine tıkla.")
                         else: st.error("Kullanıcı adı alınmış.")
                     except: st.error("Kayıt hatası.")
-        
-        st.markdown("</div>", unsafe_allow_html=True)
         
         st.markdown("""
         <a href="https://teams.live.com/l/community/FEA37u2Ksl3MjtjcgY" target="_blank" class="teams-link">

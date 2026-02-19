@@ -26,7 +26,7 @@ VIDEO_FOLDER = "ozel_videolar"
 ADMIN_USER = "emirozkok"
 ADMIN_PASS_RAW = "Hbaamaek7!.zemir" 
 
-# --- 📋 MÜFREDAT ---
+# --- 📋 MÜFREDAT (AYRIŞTIRILMIŞ) ---
 CIZELGE_DETAY = {
     "TYT TÜRKÇE": ["Sözcükte Anlam", "Cümlede Anlam", "Paragraf", "Ses Bilgisi", "Yazım Kuralları", "Noktalama", "Sözcük Türleri", "Fiiller", "Cümlenin Ögeleri", "Anlatım Bozukluğu"],
     "TYT TARİH": ["Tarih Bilimine Giriş", "İlk Çağ", "İslamiyet Öncesi Türk", "İslam Tarihi", "Türk İslam", "Osmanlı (Kuruluş-Yükselme)", "Osmanlı (Duraklama-Dağılma)", "Milli Mücadele", "Atatürk İlkeleri"],
@@ -50,14 +50,19 @@ CIZELGE_DETAY = {
 FLASHCARD_DERSLER = list(CIZELGE_DETAY.keys())
 ODEV_DERSLERI = list(CIZELGE_DETAY.keys())
 
-# --- 🛡️ GÜVENLİ DOSYA OKUMA ---
+# --- 🛡️ GÜVENLİ DOSYA OKUMA (EKSİK SÜTUNLARI OTOMATİK TAMAMLAR) ---
 def safe_read_csv(file_path, columns):
     try:
         if not os.path.exists(file_path) or os.stat(file_path).st_size == 0:
             df = pd.DataFrame(columns=columns)
             df.to_csv(file_path, index=False)
             return df
-        return pd.read_csv(file_path)
+        df = pd.read_csv(file_path)
+        # Eski dosyalarda eksik sütun varsa ekle (Çökme Koruması)
+        for col in columns:
+            if col not in df.columns:
+                df[col] = ""
+        return df
     except Exception:
         df = pd.DataFrame(columns=columns)
         df.to_csv(file_path, index=False)
@@ -74,7 +79,7 @@ def init_files():
     safe_read_csv(GOALS_DATA, ["username", "date", "target_min", "status"])
     safe_read_csv(EMIR_QUESTIONS, ["id", "Tarih", "Kullanici", "Soru", "Durum"])
     safe_read_csv(SMART_FLASHCARD_DATA, ["username", "ders", "soru", "cevap", "tarih"])
-    safe_read_csv(TRIALS_DATA, ["username", "tarih", "tur", "yayin", "net"])
+    safe_read_csv(TRIALS_DATA, ["username", "tarih", "tur", "yayin", "net", "detay"])
     safe_read_csv(VIDEO_DATA, ["baslik", "dosya_yolu"])
 
     if not os.path.exists(USER_DATA) or os.stat(USER_DATA).st_size == 0:
@@ -93,7 +98,7 @@ def init_files():
 
 init_files()
 
-# --- 🚀 GLOBAL KRONOMETRE GÖSTERGESİ FONKSİYONU ---
+# --- 🚀 GLOBAL KRONOMETRE GÖSTERGESİ ---
 def render_floating_timer():
     if st.session_state.get('timer_active', False) and st.session_state.page != 'kronometre':
         elapsed = st.session_state.elapsed_time + (time.time() - st.session_state.start_time)
@@ -125,7 +130,6 @@ def render_floating_timer():
         }}
         </style>
         """, unsafe_allow_html=True)
-
 
 # --- 🎨 CSS: GENEL ---
 st.markdown("""
@@ -187,10 +191,8 @@ def go_to(page): st.session_state.page = page; st.rerun()
 # ==========================================
 if st.session_state.page == 'landing' and not st.session_state.logged_in:
     
-    # KUTUYU DİREKT SEKMELERİN (TABS) ÜSTÜNE GİYDİREN PROFESYONEL CSS
     st.markdown("""
     <style>
-    /* Sekme panelini (Tabs) neon kutuya çevirir */
     div[data-testid="stTabs"] {
         background: rgba(15, 23, 42, 0.9);
         padding: 25px; 
@@ -198,7 +200,6 @@ if st.session_state.page == 'landing' and not st.session_state.logged_in:
         border: 2px solid #3b82f6; 
         box-shadow: 0 0 40px rgba(59, 130, 246, 0.4);
     }
-    /* Giriş ve Kayıt butonlarını tam ortadan (50/50) ikiye böler */
     button[data-baseweb="tab"] {
         flex-grow: 1 !important;
         text-align: center !important;
@@ -206,7 +207,6 @@ if st.session_state.page == 'landing' and not st.session_state.logged_in:
         font-size: 18px !important;
         font-weight: 800 !important;
     }
-    /* Altındaki gereksiz çizgileri temizler */
     div[data-baseweb="tab-highlight"] {
         background-color: #3b82f6 !important;
     }
@@ -216,28 +216,23 @@ if st.session_state.page == 'landing' and not st.session_state.logged_in:
     </style>
     """, unsafe_allow_html=True)
 
-    st.markdown("<h1 style='text-align:center; font-size: 70px; color:#3b82f6; margin-bottom:30px; text-shadow: 0 0 20px rgba(59,130,246,0.5);'>EMİR ÖZKÖK</h1>", unsafe_allow_html=True)
+    st.markdown("<h1 style='text-align:center; font-size: 70px; color:#3b82f6; margin-bottom:10px; text-shadow: 0 0 20px rgba(59,130,246,0.5);'>EMİR ÖZKÖK</h1>", unsafe_allow_html=True)
+    
+    st.markdown("""
+    <div style='text-align:center; margin-bottom: 40px; padding: 0 10%;'>
+        <p style='color:#cbd5e1; font-size:20px; line-height:1.6;'>
+        Sınav senesinde <b>"keşke böyle bir site olsaydı"</b> diyeceğim şekilde, ihtiyaçlarına göre bir site hazırladım. 
+        İçeride yaptıklarını kaydedebileceğin, ne kadar soru çözdüğünü anlık görebileceğin, önemli bilgileri not edip flash kartlarla çalışabileceğin bölümler ve daha nicesi...
+        </p>
+        <p style='color:#3b82f6; font-weight:bold; font-size:24px; margin-top:15px;'>
+        HADİ HEMEN BAŞLA! 🚀
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
     
     col1, col2 = st.columns([1.5, 1], gap="large")
     
     with col1:
-        st.markdown("""
-        <div style='text-align:left; margin-bottom: 30px;'>
-            <p style='color:#e2e8f0; font-size:22px; line-height:1.6; font-weight: 500;'>
-            Sınav senesinde <b>"keşke böyle bir site olsaydı"</b> diyeceğim şekilde, ihtiyaçlarına göre bir site hazırladım.
-            </p>
-            <p style='color:#94a3b8; font-size:18px; margin-top:20px;'>
-            ✅ Yaptıklarını kaydet, gelişimini gör.<br>
-            ✅ Ne kadar soru çözdüğünü anlık takip et.<br>
-            ✅ Önemli bilgileri not et, flash kartlarla çalış.<br>
-            ✅ Denemelerini analiz et ve yükselişe geç!
-            </p>
-            <p style='color:#3b82f6; font-weight:bold; font-size:26px; margin-top:30px;'>
-            HADİ HEMEN BAŞLA! 🚀
-            </p>
-        </div>
-        """, unsafe_allow_html=True)
-        
         found_files = glob.glob("emir_foto.*") + glob.glob("emir*.*")
         photo_path = None
         for f in found_files:
@@ -248,7 +243,6 @@ if st.session_state.page == 'landing' and not st.session_state.logged_in:
             st.markdown(f'''<div style="width:100%; aspect-ratio: 16/9; overflow:hidden; border-radius:20px; border:2px solid #3b82f6; box-shadow: 0 0 30px rgba(59, 130, 246, 0.3);"><img src="data:image/png;base64,{encoded_string}" style="width:100%; height:100%; object-fit:cover;"></div>''', unsafe_allow_html=True)
 
     with col2:
-        # BOŞ DİV'LER SİLİNDİ, SEKMELER DOĞRUDAN OLUŞTURULDU
         tab1, tab2 = st.tabs(["🔐 GİRİŞ YAP", "📝 KAYIT OL"])
         
         with tab1:
@@ -302,7 +296,7 @@ if st.session_state.page == 'landing' and not st.session_state.logged_in:
 # ==========================================
 elif st.session_state.logged_in and st.session_state.page == 'dashboard':
     
-    render_floating_timer() # SAĞ ÜST KAYAN KRONOMETRE
+    render_floating_timer()
     
     c1, c2 = st.columns([8, 2])
     with c1: st.markdown(f"## 👋 {st.session_state.realname}")
@@ -376,7 +370,7 @@ elif st.session_state.logged_in and st.session_state.page == 'dashboard':
 # 3. İÇ SAYFALAR
 # ==========================================
 elif st.session_state.logged_in:
-    render_floating_timer() # SAĞ ÜST KAYAN KRONOMETRE
+    render_floating_timer()
     
     c_bk, c_tit = st.columns([1,10])
     with c_bk:
@@ -473,47 +467,121 @@ elif st.session_state.logged_in:
                 if toplam_dk > 0:
                     df = safe_read_csv(WORK_DATA, ["username","Tarih","Ders","Konu","Soru","Süre"])
                     new_row = pd.DataFrame([[st.session_state.username, str(selected_date), "GENEL", "Günlük Süre", 0, toplam_dk]], columns=df.columns)
-                    pd.concat([df, new_row], ignore_index=True).to_csv(WORK_DATA, index=False)
+                    pd.concat([df, new_row], ignore_index=True).to.csv(WORK_DATA, index=False)
                     st.success(f"Toplam {saat} saat {dakika} dakika kaydedildi!")
                 else: st.warning("Süre girmedin.")
 
+        # --- YENİ EKLENEN DENEME SINAVI DİNAMİK ALANI ---
         with tab_deneme:
             st.subheader("🏆 Deneme Sınavı Ekle")
+            
+            t_tur = st.selectbox("Deneme Türü Seç:", ["TYT", "AYT Sayısal", "AYT Eşit Ağırlık", "AYT Sözel", "Branş Denemesi"])
+            
             with st.form("trial_form"):
                 c_t1, c_t2 = st.columns(2)
                 t_date = c_t1.date_input("Deneme Tarihi", date.today())
-                t_tur = c_t2.selectbox("Deneme Türü", ["TYT", "AYT", "Branş Denemesi"])
-                c_t3, c_t4 = st.columns(2)
-                t_yayin = c_t3.text_input("Yayın Evi (Örn: 345, Bilgi Sarmal)")
-                t_net = c_t4.number_input("Toplam Net", min_value=0.0, step=0.25, format="%.2f")
-                if st.form_submit_button("DENEMEYİ KAYDET"):
-                    trial_df = safe_read_csv(TRIALS_DATA, ["username", "tarih", "tur", "yayin", "net"])
-                    new_trial = pd.DataFrame([[st.session_state.username, str(t_date), t_tur, t_yayin, t_net]], columns=trial_df.columns)
+                t_yayin = c_t2.text_input("Yayın Evi (Örn: 345, Bilgi Sarmal)")
+                
+                st.markdown("### 📝 Netlerini Gir")
+                
+                if t_tur == "TYT":
+                    c_n1, c_n2, c_n3, c_n4 = st.columns(4)
+                    turkce = c_n1.number_input("Türkçe (40)", step=0.25, format="%.2f")
+                    sosyal = c_n2.number_input("Sosyal (20)", step=0.25, format="%.2f")
+                    mat = c_n3.number_input("Matematik (40)", step=0.25, format="%.2f")
+                    fen = c_n4.number_input("Fen (20)", step=0.25, format="%.2f")
+                elif t_tur == "AYT Sayısal":
+                    c_n1, c_n2, c_n3, c_n4 = st.columns(4)
+                    mat = c_n1.number_input("Matematik (40)", step=0.25, format="%.2f")
+                    fizik = c_n2.number_input("Fizik (14)", step=0.25, format="%.2f")
+                    kimya = c_n3.number_input("Kimya (13)", step=0.25, format="%.2f")
+                    biyo = c_n4.number_input("Biyoloji (13)", step=0.25, format="%.2f")
+                elif t_tur == "AYT Eşit Ağırlık":
+                    c_n1, c_n2, c_n3, c_n4 = st.columns(4)
+                    mat = c_n1.number_input("Matematik (40)", step=0.25, format="%.2f")
+                    edebiyat = c_n2.number_input("Edebiyat (24)", step=0.25, format="%.2f")
+                    tarih1 = c_n3.number_input("Tarih-1 (10)", step=0.25, format="%.2f")
+                    cog1 = c_n4.number_input("Coğrafya-1 (6)", step=0.25, format="%.2f")
+                elif t_tur == "AYT Sözel":
+                    c_n1, c_n2, c_n3, c_n4 = st.columns(4)
+                    edebiyat = c_n1.number_input("Edebiyat (24)", step=0.25, format="%.2f")
+                    tarih1 = c_n2.number_input("Tarih-1 (10)", step=0.25, format="%.2f")
+                    cog1 = c_n3.number_input("Coğrafya-1 (6)", step=0.25, format="%.2f")
+                    tarih2 = c_n4.number_input("Tarih-2 (11)", step=0.25, format="%.2f")
+                else:
+                    brans = st.selectbox("Branş Seç", list(CIZELGE_DETAY.keys()))
+                    net_genel = st.number_input("Netin", step=0.25, format="%.2f")
+
+                submit_btn = st.form_submit_button("DENEMEYİ KAYDET", use_container_width=True)
+                
+                if submit_btn:
+                    if t_tur == "TYT":
+                        toplam_net = turkce + sosyal + mat + fen
+                        detay_str = f"Tür: {turkce} | Sos: {sosyal} | Mat: {mat} | Fen: {fen}"
+                    elif t_tur == "AYT Sayısal":
+                        toplam_net = mat + fizik + kimya + biyo
+                        detay_str = f"Mat: {mat} | Fiz: {fizik} | Kim: {kimya} | Biy: {biyo}"
+                    elif t_tur == "AYT Eşit Ağırlık":
+                        toplam_net = mat + edebiyat + tarih1 + cog1
+                        detay_str = f"Mat: {mat} | Edb: {edebiyat} | Tar1: {tarih1} | Coğ1: {cog1}"
+                    elif t_tur == "AYT Sözel":
+                        toplam_net = edebiyat + tarih1 + cog1 + tarih2
+                        detay_str = f"Edb: {edebiyat} | Tar1: {tarih1} | Coğ1: {cog1} | Tar2: {tarih2}"
+                    else:
+                        toplam_net = net_genel
+                        detay_str = f"{brans}: {net_genel}"
+                        
+                    trial_df = safe_read_csv(TRIALS_DATA, ["username", "tarih", "tur", "yayin", "net", "detay"])
+                    new_trial = pd.DataFrame([[st.session_state.username, str(t_date), t_tur, t_yayin, toplam_net, detay_str]], columns=trial_df.columns)
                     pd.concat([trial_df, new_trial], ignore_index=True).to_csv(TRIALS_DATA, index=False)
-                    st.success("✅ Deneme kaydedildi!")
+                    st.success(f"✅ Deneme başarıyla kaydedildi! (Toplam Net: {toplam_net})")
                     time.sleep(1); st.rerun()
-            st.write("### 📉 Deneme Grafiği")
+
+            st.write("### 📉 Deneme Geçmişi")
             try:
-                tdf = safe_read_csv(TRIALS_DATA, ["username", "tarih", "net"])
+                tdf = safe_read_csv(TRIALS_DATA, ["username", "tarih", "tur", "yayin", "net", "detay"])
                 my_trials = tdf[tdf['username'] == st.session_state.username]
                 if not my_trials.empty:
                     st.line_chart(my_trials, x="tarih", y="net")
-                    st.dataframe(my_trials.sort_values(by="tarih", ascending=False), use_container_width=True)
+                    st.dataframe(my_trials.sort_values(by="tarih", ascending=False)[['tarih', 'tur', 'yayin', 'net', 'detay']], use_container_width=True)
                 else: st.info("Henüz deneme kaydı yok.")
             except: st.error("Veri yok.")
 
         with tab_grafik:
             try:
-                df = safe_read_csv(WORK_DATA, ["username", "Ders", "Soru", "Tarih"])
+                df = safe_read_csv(WORK_DATA, ["username", "Tarih", "Ders", "Konu", "Soru", "Süre"])
                 my_data = df[df['username'] == st.session_state.username]
+                
                 if not my_data.empty:
                     st.write("### 📊 Ders Bazlı Soru Dağılımı")
-                    chart_data = my_data[my_data['Ders'] != "GENEL"]
+                    chart_data = my_data[my_data['Ders'] != "GENEL"].copy()
+                    chart_data['Soru'] = pd.to_numeric(chart_data['Soru'], errors='coerce').fillna(0)
                     st.bar_chart(chart_data.groupby("Ders")["Soru"].sum())
-                    st.write("### 🗓️ Son Çalışmalar")
-                    st.dataframe(my_data.sort_values(by="Tarih", ascending=False).head(10), use_container_width=True)
+                    
+                    st.write("### 🗓️ Son Çalışmalar (Günlük Özet)")
+                    
+                    unique_dates = my_data['Tarih'].unique()
+                    unique_dates.sort()
+                    unique_dates = unique_dates[::-1] 
+                    
+                    for d in unique_dates:
+                        day_data = my_data[my_data['Tarih'] == d].copy()
+                        day_data['Soru'] = pd.to_numeric(day_data['Soru'], errors='coerce').fillna(0)
+                        day_data['Süre'] = pd.to_numeric(day_data['Süre'], errors='coerce').fillna(0)
+                        
+                        toplam_soru = int(day_data['Soru'].sum())
+                        toplam_sure = int(day_data['Süre'].sum())
+                        
+                        saat = toplam_sure // 60
+                        dakika = toplam_sure % 60
+                        sure_metni = f"{saat} Sa {dakika} Dk" if toplam_sure > 0 else "Süre girilmedi"
+                        
+                        with st.expander(f"🗓️ {d} | Toplam: {toplam_soru} Soru | ⏱️ {sure_metni}"):
+                            display_df = day_data[['Ders', 'Soru', 'Süre']].copy()
+                            st.dataframe(display_df, use_container_width=True, hide_index=True)
+                            
                 else: st.info("Henüz veri yok.")
-            except: st.error("Veri okuma hatası.")
+            except Exception as e: st.error(f"Veri okuma hatası: {e}")
 
     elif st.session_state.page == 'kronometre':
         st.header("⏱️ Odaklanma & Hedef")

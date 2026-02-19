@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import os
 import hashlib
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 import time
 import base64
 import glob
@@ -596,7 +596,6 @@ elif st.session_state.logged_in:
         with tab_deneme:
             st.subheader("🏆 Deneme Sınavı Ekle")
             
-            # Eşit Ağırlık ve Sözel geri eklendi
             t_tur = st.selectbox("Deneme Türü Seç:", ["TYT", "AYT Sayısal", "AYT Eşit Ağırlık", "AYT Sözel", "Branş Denemesi"])
             
             with st.form("trial_form"):
@@ -652,7 +651,7 @@ elif st.session_state.logged_in:
                         b_d = st.number_input("D", 0, 13, key="b_d")
                         b_y = st.number_input("Y", 0, 13, key="b_y")
                         biyo = b_d - (b_y * 0.25)
-                
+                        
                 elif t_tur == "AYT Eşit Ağırlık":
                     c_n1, c_n2, c_n3, c_n4 = st.columns(4)
                     with c_n1:
@@ -844,7 +843,6 @@ elif st.session_state.logged_in:
                     if st.session_state.timer_active:
                         st.session_state.timer_active = False
                         st.session_state.elapsed_time = target_val * 60
-                        # HEDEF TAMAMLANINCA MOTİVASYON MESAJI DEĞİŞTİRİLDİ
                         st.success("🎉 Bravo hedefine ulaştın, böyle devam! Lütfen süreni kaydet.")
                 display_time = remaining
             else:
@@ -859,20 +857,74 @@ elif st.session_state.logged_in:
                 
         st.markdown("<br><br><br><br><br>", unsafe_allow_html=True)
 
+    # --- 🎯 STRATEJİK ÖDEV & KOÇLUK KOMUTA MERKEZİ ---
     elif st.session_state.page == 'admin_cizelge':
-        st.header("Ödev Atama Merkezi")
+        st.header("👑 Koçluk Komuta Merkezi (Derin Analiz)")
         users = safe_read_csv(USER_DATA, ["username", "is_coaching"])
         st_list = users[(users['username'] != ADMIN_USER) & (users['is_coaching'].apply(lambda x: str(x).strip().lower() in ['true', '1', 'yes']))]['username'].tolist()
+        
         if st_list:
-            target = st.selectbox("Öğrenci Seç", st_list)
-            st.write(f"### 📋 {target} - Ödev Geçmişi")
-            try:
-                td = safe_read_csv(TASKS_DATA, ["username", "tarih", "ders", "konu", "gorev", "durum"])
-                past_tasks = td[td['username'] == target][['tarih', 'ders', 'konu', 'gorev', 'durum']]
-                st.dataframe(past_tasks.sort_values(by="tarih", ascending=False), use_container_width=True)
-            except: st.write("Henüz ödev kaydı yok.")
-            st.write("---")
-            with st.expander("➕ Yeni Kitap Ekle"):
+            target = st.selectbox("🎯 Analiz Edilecek Öğrenciyi Seç", st_list)
+            st.markdown("---")
+            
+            # --- VERİ ÇEKME ---
+            td = safe_read_csv(TASKS_DATA, ["id", "username", "book", "ders", "konu", "gorev", "durum", "tarih"])
+            wd = safe_read_csv(WORK_DATA, ["username", "Tarih", "Ders", "Konu", "Soru", "Süre"])
+            
+            user_tasks = td[td['username'] == target].copy()
+            user_work = wd[wd['username'] == target].copy()
+            
+            user_tasks['tarih_dt'] = pd.to_datetime(user_tasks['tarih'], errors='coerce')
+            user_work['Tarih_dt'] = pd.to_datetime(user_work['Tarih'], errors='coerce')
+            
+            yedi_gun_once = pd.Timestamp(date.today() - timedelta(days=7))
+            
+            # --- 1. EFOR KARNESİ (SON 7 GÜN) ---
+            st.markdown("### 📊 Son 7 Günün Efor Karnesi")
+            recent_work = user_work[user_work['Tarih_dt'] >= yedi_gun_once]
+            
+            recent_work['Soru'] = pd.to_numeric(recent_work['Soru'], errors='coerce').fillna(0)
+            recent_work['Süre'] = pd.to_numeric(recent_work['Süre'], errors='coerce').fillna(0)
+            
+            last_7_q = recent_work['Soru'].sum()
+            last_7_time = recent_work['Süre'].sum()
+            
+            total_t = len(user_tasks)
+            done_t = len(user_tasks[user_tasks['durum'] == 'Tamamlandı'])
+            sadakat = (done_t / total_t * 100) if total_t > 0 else 0
+            
+            bekleyen_sayisi = len(user_tasks[user_tasks['durum'] == 'Yapılmadı'])
+            
+            m1, m2, m3, m4 = st.columns(4)
+            m1.metric("Son 7 Gün Çözülen Soru", int(last_7_q))
+            m2.metric("Son 7 Gün Çalışma Süresi", f"{int(last_7_time//60)}s {int(last_7_time%60)}dk")
+            m3.metric("Ödev Sadakati (Genel)", f"%{int(sadakat)}")
+            m4.metric("Aktif Bekleyen Ödev", bekleyen_sayisi)
+            
+            # --- 2. DARBOĞAZ VE ALARMLAR ---
+            st.markdown("<br>", unsafe_allow_html=True)
+            if bekleyen_sayisi >= 5:
+                st.error(f"🚨 **DARBOĞAZ UYARISI:** Öğrencinin elinde eritmediği {bekleyen_sayisi} adet ödev birikmiş. Yeni ödev yüklemesi yapmadan önce stratejini gözden geçir!")
+            elif bekleyen_sayisi == 0 and total_t > 0:
+                st.success("🔥 **MÜKEMMEL:** Öğrenci tüm ödevlerini eritmiş, yeni görevlere tamamen aç!")
+                
+            st.markdown("---")
+            
+            # --- 3. GEÇEN HAFTANIN RÖNTGENİ ---
+            st.markdown("### 🗓️ Geçen Görüşmeden Bugüne (Son 7 Günlük Ödevler)")
+            recent_tasks = user_tasks[user_tasks['tarih_dt'] >= yedi_gun_once]
+            if not recent_tasks.empty:
+                display_rt = recent_tasks[['tarih', 'ders', 'konu', 'book', 'durum']].sort_values(by="tarih", ascending=False)
+                st.dataframe(display_rt, use_container_width=True, hide_index=True)
+            else:
+                st.info("Son 7 gün içinde verilmiş bir ödev kaydı bulunmuyor.")
+
+            st.markdown("---")
+            
+            # --- 4. KİTAP ANALİZİ VE YENİ ÖDEV ---
+            st.markdown("### 🎯 Akıllı Ödev Atama Motoru")
+            
+            with st.expander("➕ Sisteme Yeni Kitap Ekle"):
                 bn = st.text_input("Kitap Adı")
                 bc = st.selectbox("Ders", list(CIZELGE_DETAY.keys()), key="new_book_lesson")
                 st.markdown("<br>", unsafe_allow_html=True)
@@ -880,7 +932,6 @@ elif st.session_state.logged_in:
                     bd = safe_read_csv(BOOKS_DATA, ["username", "book_name", "category", "status"])
                     pd.concat([bd, pd.DataFrame([[target, bn, bc, "Active"]], columns=bd.columns)]).to_csv(BOOKS_DATA, index=False)
                     st.success("Kitap eklendi!")
-            st.subheader("📝 Yeni Ödev Ver")
             
             try: 
                 bd = safe_read_csv(BOOKS_DATA, ["username", "book_name", "category"])
@@ -889,21 +940,61 @@ elif st.session_state.logged_in:
             except: bks = []
             
             if bks:
-                c1, c2 = st.columns(2)
-                s_kitap = c1.selectbox("Kitap", bks)
+                st.markdown("<br>", unsafe_allow_html=True)
+                s_kitap = st.selectbox("📚 Kitap Seç ve Analizi Gör", bks)
                 
                 secilen_ders = user_bks[user_bks['book_name'] == s_kitap].iloc[0]['category']
                 
-                s_konu = st.selectbox("Konu Seçin", CIZELGE_DETAY.get(secilen_ders, ["Genel"]))
-                s_detay = st.text_input("Detay (Test No / Sayfa)")
+                # KITAP RÖNTGENİ (Isı Haritası Mantığı)
+                st.markdown(f"""
+                <div style='background: #0f172a; border: 1px solid #3b82f6; border-radius: 10px; padding: 20px; margin-top: 15px; margin-bottom: 25px;'>
+                    <h4 style='color: #60a5fa; margin-top: 0;'>{s_kitap} ({secilen_ders})</h4>
+                """, unsafe_allow_html=True)
+                
+                book_tasks = user_tasks[user_tasks['book'] == s_kitap]
+                tamamlananlar = book_tasks[book_tasks['durum'] == 'Tamamlandı']['konu'].unique().tolist()
+                bekleyenler = book_tasks[book_tasks['durum'] == 'Yapılmadı']['konu'].unique().tolist()
+                tum_konular = CIZELGE_DETAY.get(secilen_ders, ["Genel"])
+                
+                k_m1, k_m2, k_m3, k_m4 = st.columns(4)
+                k_m1.metric("Toplam Konu", len(tum_konular))
+                k_m2.metric("✅ Biten", len(tamamlananlar))
+                k_m3.metric("⏳ Bekleyen", len(bekleyenler))
+                k_m4.metric("Kalan", len(tum_konular) - len(tamamlananlar))
+                
+                if len(tum_konular) > 0:
+                    prog = len(tamamlananlar) / len(tum_konular)
+                    st.progress(prog, text=f"Kitap Bitirme Oranı: %{int(prog*100)}")
+                    
+                st.markdown("</div>", unsafe_allow_html=True)
+                
+                # ÖDEV FORMU (Emojili Kalkan)
+                konu_secenekleri = []
+                for k in tum_konular:
+                    if k in tamamlananlar: konu_secenekleri.append(f"✅ {k} (Bitti)")
+                    elif k in bekleyenler: konu_secenekleri.append(f"⏳ {k} (Ödevde)")
+                    else: konu_secenekleri.append(k)
+                    
+                c_form1, c_form2 = st.columns([2, 1])
+                s_konu_display = c_form1.selectbox("Hangi Konuyu Vereceksin?", konu_secenekleri)
+                s_konu_gercek = s_konu_display.replace("✅ ", "").replace(" (Bitti)", "").replace("⏳ ", "").replace(" (Ödevde)", "")
+                
+                s_detay = c_form2.text_input("Sayfa / Test Aralığı")
+                
+                if "✅" in s_konu_display: st.warning("⚠️ DİKKAT: Bu konuyu zaten BİTİRMİŞ! Emin misin?")
+                if "⏳" in s_konu_display: st.error("🚨 HATA: Bu konu şu an AKTİF ÖDEV olarak elinde bekliyor! Üst üste verme.")
+                
                 st.markdown("<br>", unsafe_allow_html=True)
-                if st.button("ÖDEVİ GÖNDER", use_container_width=True):
+                if st.button("🚀 ÖDEVİ GÖNDER", use_container_width=True):
                     td = safe_read_csv(TASKS_DATA, ["id", "username", "book", "ders", "konu", "gorev", "durum", "tarih"])
-                    new_task = pd.DataFrame([[int(time.time()), target, s_kitap, secilen_ders, s_konu, s_detay, "Yapılmadı", str(date.today())]], columns=td.columns)
+                    new_task = pd.DataFrame([[int(time.time()), target, s_kitap, secilen_ders, s_konu_gercek, s_detay, "Yapılmadı", str(date.today())]], columns=td.columns)
                     pd.concat([td, new_task], ignore_index=True).to_csv(TASKS_DATA, index=False)
-                    st.success("Ödev başarıyla gönderildi!")
-            else: st.warning("Önce öğrenciye bir kitap eklemelisin.")
-        else: st.warning("Hiç koçluk öğrencisi yok veya filtre hatası. 'Öğrenci Listesi'nden yetki ver.")
+                    st.success(f"GÖREV VERİLDİ: {s_konu_gercek}")
+                    time.sleep(1); st.rerun()
+            else: st.warning("Bu öğrenciye atanmış bir kitap yok.")
+            
+        else: st.warning("Sistemde kayıtlı koçluk öğrencisi bulunamadı.")
+        
         st.markdown("<br><br><br><br><br>", unsafe_allow_html=True)
 
     elif st.session_state.page == 'my_tasks':
@@ -941,7 +1032,6 @@ elif st.session_state.logged_in:
             q = st.text_input("Soru (Ön Yüz)")
             a = st.text_input("Cevap (Arka Yüz)")
             
-            # FOTOĞRAF EKLEME ÖZELLİĞİ
             uploaded_file = st.file_uploader("Soru Fotoğrafı Ekle (Yapamadığın soruları yükle, sonra tekrar çöz!) - PNG/JPG", type=["png", "jpg", "jpeg"])
             
             st.markdown("<br>", unsafe_allow_html=True)
@@ -963,7 +1053,6 @@ elif st.session_state.logged_in:
         with t2:
             st.subheader("Serbest Kart Okuma")
             
-            # DERS FİLTRELEME
             filter_opt = st.selectbox("Çalışılacak Dersi Seç", ["Tüm Dersler"] + FLASHCARD_DERSLER, key="free_filter")
             
             try:
@@ -982,7 +1071,6 @@ elif st.session_state.logged_in:
                     
                     st.markdown(f"<div class='dashboard-card'><h5 style='color:#94a3b8;'>{row['ders']}</h5><h2>{row['soru']}</h2></div>", unsafe_allow_html=True)
                     
-                    # FOTOĞRAF GÖSTERİMİ
                     if pd.notna(row.get('image_path')) and str(row.get('image_path')) != "":
                         if os.path.exists(str(row['image_path'])):
                             st.image(str(row['image_path']), use_container_width=True)
@@ -1025,7 +1113,7 @@ elif st.session_state.logged_in:
                         
                     if not my.empty:
                         my_list = my.to_dict('records')
-                        random.shuffle(my_list) # KARTLARI KARIŞTIRMA (SHUFFLE)
+                        random.shuffle(my_list)
                         st.session_state.test_queue = my_list
                         st.session_state.test_active = True
                         st.session_state.test_show_ans = False
@@ -1082,7 +1170,6 @@ elif st.session_state.logged_in:
                             st.session_state.test_user_ans = ""
                             st.rerun()
         
-        # YENİ SEKME: TÜMÜNÜ GÖR (HIZLI TEKRAR LİSTESİ)
         with t4:
             st.subheader("📋 Sınav Öncesi Hızlı Tekrar Listesi")
             list_filter = st.selectbox("Ders Filtrele", ["Tüm Dersler"] + FLASHCARD_DERSLER, key="list_filter")

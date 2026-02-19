@@ -18,6 +18,7 @@ VIDEO_DATA = "videolar.csv"
 TASKS_DATA = "odevler.csv"
 BOOKS_DATA = "ogrenci_kitaplari.csv"
 GOALS_DATA = "hedefler.csv"
+EMIR_QUESTIONS = "emire_gelen_sorular.csv"
 SMART_FLASHCARD_DATA = "akilli_kartlar.csv"
 TRIALS_DATA = "denemeler.csv"
 VIDEO_FOLDER = "ozel_videolar"
@@ -151,6 +152,7 @@ def init_files():
     safe_read_csv(TASKS_DATA, ["id", "username", "book", "ders", "konu", "gorev", "durum", "tarih"])
     safe_read_csv(BOOKS_DATA, ["username", "book_name", "category", "status"])
     safe_read_csv(GOALS_DATA, ["username", "date", "target_min", "status"])
+    safe_read_csv(EMIR_QUESTIONS, ["id", "Tarih", "Kullanici", "Soru", "Durum"])
     safe_read_csv(SMART_FLASHCARD_DATA, ["username", "ders", "soru", "cevap", "tarih", "image_path"])
     safe_read_csv(TRIALS_DATA, ["username", "tarih", "tur", "yayin", "net", "detay"])
     safe_read_csv(VIDEO_DATA, ["baslik", "dosya_yolu"])
@@ -203,6 +205,7 @@ def render_floating_timer():
         }}
         </style>
         """, unsafe_allow_html=True)
+
 
 # --- 🎨 CSS: GENEL & NEON PARLAMALAR ---
 st.markdown("""
@@ -259,7 +262,21 @@ st.markdown("""
         text-decoration: none; font-weight: bold; font-size: 18px;
         box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4); transition: 0.3s;
     }
-    .teams-link:hover { transform: scale(1.02); box-shadow: 0 6px 20px rgba(16, 185, 129, 0.6); }
+    .teams-link:hover { transform: scale(1.02); box-shadow: 0 6px 20px rgba(16, 185, 129, 0.8); }
+    
+    /* GİRİŞ EKRANI NEON TAB PARLAMASI */
+    div[data-testid="stTabs"] button[data-baseweb="tab"] {
+        flex-grow: 1 !important;
+        text-align: center !important;
+        justify-content: center !important;
+        font-size: 18px !important;
+        font-weight: 800 !important;
+        transition: 0.3s;
+    }
+    div[data-testid="stTabs"] button[aria-selected="true"] {
+        color: #60a5fa !important;
+        text-shadow: 0 0 10px rgba(96, 165, 250, 0.8);
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -284,26 +301,11 @@ if st.session_state.page == 'landing' and not st.session_state.logged_in:
         padding: 30px 30px 45px 30px; 
         border-radius: 20px;
         border: 2px solid #3b82f6; 
-        box-shadow: 0 0 40px rgba(59, 130, 246, 0.4);
-    }
-    
-    /* GİRİŞ YAP / ÜYE OL SEKME PARLAMASI */
-    div[data-testid="stTabs"] button[data-baseweb="tab"] {
-        flex-grow: 1 !important;
-        text-align: center !important;
-        justify-content: center !important;
-        font-size: 18px !important;
-        font-weight: 800 !important;
-        color: #94a3b8 !important;
-        transition: 0.3s !important;
-    }
-    div[data-testid="stTabs"] button[aria-selected="true"] {
-        color: #60a5fa !important;
-        text-shadow: 0 0 10px rgba(96, 165, 250, 0.8) !important;
+        box-shadow: 0 0 40px rgba(59, 130, 246, 0.5), inset 0 0 20px rgba(59, 130, 246, 0.1); 
     }
     div[data-baseweb="tab-highlight"] {
         background-color: #3b82f6 !important;
-        box-shadow: 0 0 10px #3b82f6 !important;
+        box-shadow: 0 0 10px #3b82f6;
     }
     div[data-baseweb="tab-border"] {
         background-color: transparent !important;
@@ -311,7 +313,7 @@ if st.session_state.page == 'landing' and not st.session_state.logged_in:
     </style>
     """, unsafe_allow_html=True)
 
-    st.markdown("<h1 style='text-align:center; font-size: 70px; color:#3b82f6; margin-bottom:10px; text-shadow: 0 0 20px rgba(59,130,246,0.6);'>EMİR ÖZKÖK</h1>", unsafe_allow_html=True)
+    st.markdown("<h1 style='text-align:center; font-size: 70px; color:#3b82f6; margin-bottom:10px; text-shadow: 0 0 25px rgba(59,130,246,0.7);'>EMİR ÖZKÖK</h1>", unsafe_allow_html=True)
     
     st.markdown("""
     <div style='text-align:center; margin-bottom: 40px; padding: 0 10%;'>
@@ -319,7 +321,7 @@ if st.session_state.page == 'landing' and not st.session_state.logged_in:
         Sınav senesinde <b>"keşke böyle bir site olsaydı"</b> diyeceğim şekilde, ihtiyaçlarına göre bir site hazırladım. 
         İçeride yaptıklarını kaydedebileceğin, ne kadar soru çözdüğünü anlık görebileceğin, önemli bilgileri not edip flash kartlarla çalışabileceğin bölümler ve daha nicesi...
         </p>
-        <p style='color:#3b82f6; font-weight:bold; font-size:24px; margin-top:15px;'>
+        <p style='color:#3b82f6; font-weight:bold; font-size:24px; margin-top:15px; text-shadow: 0 0 10px rgba(59,130,246,0.4);'>
         HADİ HEMEN BAŞLA! 🚀
         </p>
     </div>
@@ -462,7 +464,7 @@ elif st.session_state.logged_in and st.session_state.page == 'dashboard':
             </a>
             ''', unsafe_allow_html=True)
         with r2_c2:
-            st.markdown('<div class="dashboard-card card-purple" style="background: linear-gradient(135deg, #E91E63, #9C27B0);"><h3>🧠 KARTLAR</h3><p>Flashcards</p></div>', unsafe_allow_html=True)
+            st.markdown('<div class="dashboard-card card-purple" style="background: linear-gradient(135deg, #E91E63, #9C27B0);"><h3>🧠 KARTLAR</h3><p>Soru & Çözüm Defteri</p></div>', unsafe_allow_html=True)
             if st.button("ÇALIŞ", use_container_width=True): go_to('flashcards')
 
         if st.session_state.username == ADMIN_USER:
@@ -594,7 +596,8 @@ elif st.session_state.logged_in:
         with tab_deneme:
             st.subheader("🏆 Deneme Sınavı Ekle")
             
-            t_tur = st.selectbox("Deneme Türü Seç:", ["TYT", "AYT Sayısal", "Branş Denemesi"])
+            # Eşit Ağırlık ve Sözel geri eklendi
+            t_tur = st.selectbox("Deneme Türü Seç:", ["TYT", "AYT Sayısal", "AYT Eşit Ağırlık", "AYT Sözel", "Branş Denemesi"])
             
             with st.form("trial_form"):
                 c_t1, c_t2 = st.columns(2)
@@ -649,6 +652,53 @@ elif st.session_state.logged_in:
                         b_d = st.number_input("D", 0, 13, key="b_d")
                         b_y = st.number_input("Y", 0, 13, key="b_y")
                         biyo = b_d - (b_y * 0.25)
+                
+                elif t_tur == "AYT Eşit Ağırlık":
+                    c_n1, c_n2, c_n3, c_n4 = st.columns(4)
+                    with c_n1:
+                        st.markdown("**Matematik (40)**")
+                        m_d = st.number_input("D", 0, 40, key="ea_m_d")
+                        m_y = st.number_input("Y", 0, 40, key="ea_m_y")
+                        mat = m_d - (m_y * 0.25)
+                    with c_n2:
+                        st.markdown("**Edebiyat (24)**")
+                        e_d = st.number_input("D", 0, 24, key="e_d")
+                        e_y = st.number_input("Y", 0, 24, key="e_y")
+                        edebiyat = e_d - (e_y * 0.25)
+                    with c_n3:
+                        st.markdown("**Tarih-1 (10)**")
+                        t1_d = st.number_input("D", 0, 10, key="t1_d")
+                        t1_y = st.number_input("Y", 0, 10, key="t1_y")
+                        tarih1 = t1_d - (t1_y * 0.25)
+                    with c_n4:
+                        st.markdown("**Coğrafya-1 (6)**")
+                        c1_d = st.number_input("D", 0, 6, key="c1_d")
+                        c1_y = st.number_input("Y", 0, 6, key="c1_y")
+                        cog1 = c1_d - (c1_y * 0.25)
+
+                elif t_tur == "AYT Sözel":
+                    c_n1, c_n2, c_n3, c_n4 = st.columns(4)
+                    with c_n1:
+                        st.markdown("**Edebiyat (24)**")
+                        e_d = st.number_input("D", 0, 24, key="sz_e_d")
+                        e_y = st.number_input("Y", 0, 24, key="sz_e_y")
+                        edebiyat = e_d - (e_y * 0.25)
+                    with c_n2:
+                        st.markdown("**Tarih-1 (10)**")
+                        t1_d = st.number_input("D", 0, 10, key="sz_t1_d")
+                        t1_y = st.number_input("Y", 0, 10, key="sz_t1_y")
+                        tarih1 = t1_d - (t1_y * 0.25)
+                    with c_n3:
+                        st.markdown("**Tarih-2 (11)**")
+                        t2_d = st.number_input("D", 0, 11, key="t2_d")
+                        t2_y = st.number_input("Y", 0, 11, key="t2_y")
+                        tarih2 = t2_d - (t2_y * 0.25)
+                    with c_n4:
+                        st.markdown("**Coğrafya-1 (6)**")
+                        c1_d = st.number_input("D", 0, 6, key="sz_c1_d")
+                        c1_y = st.number_input("Y", 0, 6, key="sz_c1_y")
+                        cog1 = c1_d - (c1_y * 0.25)
+
                 else:
                     brans = st.selectbox("Branş Seç", list(CIZELGE_DETAY.keys()))
                     st.markdown("**Netin:**")
@@ -665,6 +715,12 @@ elif st.session_state.logged_in:
                     elif t_tur == "AYT Sayısal":
                         toplam_net = mat + fizik + kimya + biyo
                         detay_str = f"Mat: {mat} | Fiz: {fizik} | Kim: {kimya} | Biy: {biyo}"
+                    elif t_tur == "AYT Eşit Ağırlık":
+                        toplam_net = mat + edebiyat + tarih1 + cog1
+                        detay_str = f"Mat: {mat} | Edb: {edebiyat} | Tar1: {tarih1} | Coğ1: {cog1}"
+                    elif t_tur == "AYT Sözel":
+                        toplam_net = edebiyat + tarih1 + cog1 + tarih2
+                        detay_str = f"Edb: {edebiyat} | Tar1: {tarih1} | Coğ1: {cog1} | Tar2: {tarih2}"
                     else:
                         toplam_net = net_genel
                         detay_str = f"{brans}: {net_genel}"
@@ -788,7 +844,8 @@ elif st.session_state.logged_in:
                     if st.session_state.timer_active:
                         st.session_state.timer_active = False
                         st.session_state.elapsed_time = target_val * 60
-                        st.success("🎯 HEDEF SÜREYE ULAŞTIN! Lütfen süreni kaydet.")
+                        # HEDEF TAMAMLANINCA MOTİVASYON MESAJI DEĞİŞTİRİLDİ
+                        st.success("🎉 Bravo hedefine ulaştın, böyle devam! Lütfen süreni kaydet.")
                 display_time = remaining
             else:
                 display_time = elapsed
@@ -836,7 +893,6 @@ elif st.session_state.logged_in:
                 s_kitap = c1.selectbox("Kitap", bks)
                 
                 secilen_ders = user_bks[user_bks['book_name'] == s_kitap].iloc[0]['category']
-                c2.info(f"📚 Sistem bu kitabın **{secilen_ders}** kitabı olduğunu algıladı.")
                 
                 s_konu = st.selectbox("Konu Seçin", CIZELGE_DETAY.get(secilen_ders, ["Genel"]))
                 s_detay = st.text_input("Detay (Test No / Sayfa)")
@@ -874,21 +930,22 @@ elif st.session_state.logged_in:
         except: st.info("Sistem hazırlanıyor.")
         st.markdown("<br><br><br><br><br>", unsafe_allow_html=True)
 
-    # --- 🧠 YENİ FLASHCARD KISMI (FOTOĞRAF & SEÇMELİ DERS & LİSTE GÖRÜNÜMÜ) ---
+    # --- 🧠 ÇÖZÜM DEFTERİ & YENİDEN ÇÖZME SİSTEMİ ---
     elif st.session_state.page == 'flashcards':
-        st.header("🧠 Akıllı Kartlar")
-        t1, t2, t3, t4 = st.tabs(["➕ Kart Ekle", "📖 Serbest Çalış", "🚀 Test Et (Quiz)", "📋 Tümünü Gör (Hızlı Tekrar)"])
+        st.header("🧠 Akıllı Kartlar & Çözüm Defteri")
+        t1, t2, t3, t4 = st.tabs(["➕ Kart / Soru Ekle", "📖 Serbest Çalış", "🚀 Yeniden Çöz (Quiz)", "📋 Tümünü Gör"])
         
         with t1:
-            st.subheader("Yeni Bilgi Ekle")
+            st.subheader("Yapamadığın Soruyu veya Notunu Ekle")
             d = st.selectbox("Ders Seç", FLASHCARD_DERSLER)
             q = st.text_input("Soru (Ön Yüz)")
             a = st.text_input("Cevap (Arka Yüz)")
             
-            uploaded_file = st.file_uploader("Soru Fotoğrafı Ekle (İsteğe Bağlı - PNG/JPG)", type=["png", "jpg", "jpeg"])
+            # FOTOĞRAF EKLEME ÖZELLİĞİ
+            uploaded_file = st.file_uploader("Soru Fotoğrafı Ekle (Yapamadığın soruları yükle, sonra tekrar çöz!) - PNG/JPG", type=["png", "jpg", "jpeg"])
             
             st.markdown("<br>", unsafe_allow_html=True)
-            if st.button("Kartı Ekle", type="primary"):
+            if st.button("Sisteme Ekle", type="primary"):
                 if q and a:
                     img_path = ""
                     if uploaded_file is not None:
@@ -899,13 +956,14 @@ elif st.session_state.logged_in:
                             
                     fd = safe_read_csv(SMART_FLASHCARD_DATA, ["username", "ders", "soru", "cevap", "tarih", "image_path"])
                     pd.concat([fd, pd.DataFrame([[st.session_state.username, d, q, a, str(date.today()), img_path]], columns=fd.columns)]).to_csv(SMART_FLASHCARD_DATA, index=False)
-                    st.success("Kart başarıyla eklendi!")
+                    st.success("Soru/Not başarıyla eklendi!")
                 else:
                     st.error("Lütfen en azından soru ve cevap alanlarını doldur.")
 
         with t2:
             st.subheader("Serbest Kart Okuma")
             
+            # DERS FİLTRELEME
             filter_opt = st.selectbox("Çalışılacak Dersi Seç", ["Tüm Dersler"] + FLASHCARD_DERSLER, key="free_filter")
             
             try:
@@ -924,6 +982,7 @@ elif st.session_state.logged_in:
                     
                     st.markdown(f"<div class='dashboard-card'><h5 style='color:#94a3b8;'>{row['ders']}</h5><h2>{row['soru']}</h2></div>", unsafe_allow_html=True)
                     
+                    # FOTOĞRAF GÖSTERİMİ
                     if pd.notna(row.get('image_path')) and str(row.get('image_path')) != "":
                         if os.path.exists(str(row['image_path'])):
                             st.image(str(row['image_path']), use_container_width=True)
@@ -940,12 +999,12 @@ elif st.session_state.logged_in:
                         st.session_state.free_show_ans = False
                         st.rerun()
                 else: 
-                    st.warning("Bu derse ait kart bulunamadı.")
+                    st.warning("Bu derse ait kayıt bulunamadı.")
             except Exception as e: 
                 st.error("Kayıtlar aranıyor...")
 
         with t3:
-            st.subheader("Quizlet Modu (Öğrenene Kadar Karışık Sorar)")
+            st.subheader("Quizlet Modu (Soruları Yeniden Çöz ve Kendini Sına)")
             
             if 'test_queue' not in st.session_state:
                 st.session_state.test_queue = []
@@ -955,8 +1014,9 @@ elif st.session_state.logged_in:
 
             if not st.session_state.test_active:
                 test_filter = st.selectbox("Test Edilecek Dersi Seç", ["Tüm Dersler"] + FLASHCARD_DERSLER, key="test_filter")
-                st.info("Seçtiğin dersin kartları RASTGELE karıştırılarak önüne gelecektir. Bilemediğin kartlar destenin sonuna atılır.")
+                st.info("Seçtiğin dersin soruları RASTGELE karıştırılarak önüne gelecektir. Bilemediğin sorular destenin sonuna atılır.")
                 
+                st.markdown("<br>", unsafe_allow_html=True)
                 if st.button("🚀 Testi Başlat", use_container_width=True):
                     fd = safe_read_csv(SMART_FLASHCARD_DATA, ["username", "ders", "soru", "cevap", "tarih", "image_path"])
                     my = fd[fd['username']==st.session_state.username]
@@ -965,16 +1025,17 @@ elif st.session_state.logged_in:
                         
                     if not my.empty:
                         my_list = my.to_dict('records')
-                        random.shuffle(my_list) # KARIŞTIRMA İŞLEMİ
+                        random.shuffle(my_list) # KARTLARI KARIŞTIRMA (SHUFFLE)
                         st.session_state.test_queue = my_list
                         st.session_state.test_active = True
                         st.session_state.test_show_ans = False
                         st.session_state.test_user_ans = ""
                         st.rerun()
-                    else: st.warning("Bu derse ait test edilecek kart yok!")
+                    else: st.warning("Bu derse ait test edilecek kayıt yok!")
             else:
                 if len(st.session_state.test_queue) == 0:
-                    st.success("🎉 TEBRİKLER! Seçtiğin tüm kartları başarıyla öğrendin!")
+                    st.success("🎉 TEBRİKLER! Seçtiğin tüm soruları/kartları başarıyla öğrendin!")
+                    st.markdown("<br>", unsafe_allow_html=True)
                     if st.button("🔄 Yeni Test Başlat"):
                         st.session_state.test_active = False
                         st.rerun()
@@ -987,7 +1048,8 @@ elif st.session_state.logged_in:
                             st.image(str(current_card['image_path']), use_container_width=True)
                             
                     if not st.session_state.test_show_ans:
-                        user_input = st.text_input("Cevabını Yaz:", key="quiz_input")
+                        user_input = st.text_input("Soruyu Çöz ve Cevabını Yaz:", key="quiz_input")
+                        st.markdown("<br>", unsafe_allow_html=True)
                         if st.button("Cevabı Kontrol Et", use_container_width=True):
                             st.session_state.test_user_ans = user_input
                             st.session_state.test_show_ans = True
@@ -1019,11 +1081,12 @@ elif st.session_state.logged_in:
                             st.session_state.test_show_ans = False
                             st.session_state.test_user_ans = ""
                             st.rerun()
-
+        
+        # YENİ SEKME: TÜMÜNÜ GÖR (HIZLI TEKRAR LİSTESİ)
         with t4:
             st.subheader("📋 Sınav Öncesi Hızlı Tekrar Listesi")
             list_filter = st.selectbox("Ders Filtrele", ["Tüm Dersler"] + FLASHCARD_DERSLER, key="list_filter")
-            
+            st.markdown("<br>", unsafe_allow_html=True)
             try:
                 fd = safe_read_csv(SMART_FLASHCARD_DATA, ["username", "ders", "soru", "cevap", "tarih", "image_path"])
                 my = fd[fd['username']==st.session_state.username]
@@ -1039,10 +1102,10 @@ elif st.session_state.logged_in:
                                     st.image(str(r['image_path']), width=300)
                             st.success(f"**Cevap:** {r['cevap']}")
                 else:
-                    st.info("Görüntülenecek kart bulunamadı.")
+                    st.info("Görüntülenecek kayıt bulunamadı.")
             except Exception:
                 st.info("Kayıtlar yükleniyor...")
-
+                
         st.markdown("<br><br><br><br><br>", unsafe_allow_html=True)
     
     elif st.session_state.page == 'admin_books':

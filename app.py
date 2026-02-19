@@ -122,6 +122,57 @@ CIZELGE_DETAY = {
     ]
 }
 
+# --- 📚 KİTAP ÖNERİ SİSTEMİ (LİSTEDEN ÇEKİLDİ) ---
+KITAP_ONERILERI = {
+    "TYT TÜRKÇE": [
+        "Hız ve Renk (Kolay)", "Aydınetap Paragraf (Kolay)", 
+        "345 (Orta)", "Bilgi Sarmal (Orta)", "Paragrafın Ritmi (Orta)", "Apotemi Paragraf (Orta)", "Yayın Denizi Dilbilgisi (Orta)",
+        "Limit (Orta-Zor)", "IQ (Zor)", "Paraf (Zor)", "Sıfır Risk (Zor)", "3D (Zor)", "Paragrafın Şifresi (Zor)"
+    ],
+    "TYT MATEMATİK": [
+        "345 Start (Kolay)", "Metin Parkur (Kolay)", "Aktif (Kolay)", "Karekök 0 (Kolay)", "Mikro (Kolay)",
+        "Full (Orta)", "345 (Orta)", "Bilgi Sarmal (Orta)", "Miray (Orta)", "Toprak (Orta)",
+        "Metin (Orta-Zor)", "Acil (Orta-Zor)",
+        "Orijinal (Zor)", "3D (Zor)", "Barış (Zor)"
+    ],
+    "AYT MATEMATİK": [
+        "Hız ve Renk (Kolay)", "Karekök 0 (Kolay)",
+        "Palme (Orta)", "345 (Orta)", "Bilgi Sarmal (Orta)",
+        "3D VDD Eyüp B (Zor)", "Orijinal (Zor)"
+    ],
+    "GEOMETRİ": [
+        "Mikro Geometrinin İlacı (Kolay-Orta)",
+        "Acil (Orta)", "Hız ve Renk (Orta)", "345 (Orta)",
+        "Orijinal (Zor)", "Rasyonel (Zor)", "Bilgi Sarmal (Zor)", "Metin (Zor)", "Çap Fasikülleri (Zor)", "EİS (Zor)", "Apotemi (Zor)"
+    ],
+    "TYT FİZİK": [
+        "4K (Kolay-Orta)", "345 (Kolay-Orta)", "Negro (Kolay-Orta)",
+        "3D (Orta-Zor)", "Bilgi Sarmal (Orta-Zor)", "Apotemi (Orta-Zor)", "Esen (Orta-Zor)"
+    ],
+    "AYT FİZİK": [
+        "Paylaşım Konu Anlatım Fasikülleri (Kolay-Orta)",
+        "3D (Orta)", "Paraf (Orta)", "IQ (Orta)", "Bilgi Sarmal (Orta)", "Ulti (Orta)", "345 (Orta)"
+    ],
+    "TYT KİMYA": [
+        "Miray Konu Anlatımı", "Aktif Kimya (Kolay)", "Eğitim Vadisi (Kolay)",
+        "Orbital (Orta)", "Bilgi Sarmal (Orta)", "345 (Orta)", "Aydın (Orta)", "4K (Orta)"
+    ],
+    "AYT KİMYA": [
+        "Görkem Şahin TYT / Aktif (Başlangıç)",
+        "Palme (Orta)", "Orbital (Orta)", "Bilgi Sarmal (Orta)", "Miray (Orta)", "Apotemi (Orta)",
+        "Aydın (Zor)", "VAF (Zor)"
+    ],
+    "TYT BİYOLOJİ": [
+        "Palme (Normal)", "Karekök (Normal)", "Çap (Normal)", "Okyanus (Normal)", "Bilgi Sarmal (Normal)",
+        "Acil (Zor)", "Aydın (Zor)", "3D (Zor)"
+    ],
+    "AYT BİYOLOJİ": [
+        "Palme AYT Sıfır (Kolay)", "Çap Kolay (Kolay)", "Okyanus Pratik (Kolay)",
+        "Palme (Orta)", "3D (Orta)", "Bilgi Sarmal (Orta)",
+        "Acil (Zor)", "Aydın (Zor)", "Limit (Zor)", "Endemik (Zor)"
+    ]
+}
+
 FLASHCARD_DERSLER = list(CIZELGE_DETAY.keys())
 ODEV_DERSLERI = list(CIZELGE_DETAY.keys())
 
@@ -651,7 +702,7 @@ elif st.session_state.logged_in:
                         b_d = st.number_input("D", 0, 13, key="b_d")
                         b_y = st.number_input("Y", 0, 13, key="b_y")
                         biyo = b_d - (b_y * 0.25)
-                        
+                
                 elif t_tur == "AYT Eşit Ağırlık":
                     c_n1, c_n2, c_n3, c_n4 = st.columns(4)
                     with c_n1:
@@ -857,9 +908,9 @@ elif st.session_state.logged_in:
                 
         st.markdown("<br><br><br><br><br>", unsafe_allow_html=True)
 
-    # --- 🎯 STRATEJİK ÖDEV & KOÇLUK KOMUTA MERKEZİ ---
+    # --- 🎯 AKILLI ÖDEV ATAMA & ANALİZ SİSTEMİ (V4600) ---
     elif st.session_state.page == 'admin_cizelge':
-        st.header("👑 Koçluk Komuta Merkezi (Derin Analiz)")
+        st.header("👑 Koçluk Komuta Merkezi")
         users = safe_read_csv(USER_DATA, ["username", "is_coaching"])
         st_list = users[(users['username'] != ADMIN_USER) & (users['is_coaching'].apply(lambda x: str(x).strip().lower() in ['true', '1', 'yes']))]['username'].tolist()
         
@@ -867,85 +918,74 @@ elif st.session_state.logged_in:
             target = st.selectbox("🎯 Analiz Edilecek Öğrenciyi Seç", st_list)
             st.markdown("---")
             
-            # --- VERİ ÇEKME ---
+            # --- 1. GEÇMİŞ VE İSTATİSTİKLER ---
             td = safe_read_csv(TASKS_DATA, ["id", "username", "book", "ders", "konu", "gorev", "durum", "tarih"])
             wd = safe_read_csv(WORK_DATA, ["username", "Tarih", "Ders", "Konu", "Soru", "Süre"])
-            
             user_tasks = td[td['username'] == target].copy()
             user_work = wd[wd['username'] == target].copy()
             
-            user_tasks['tarih_dt'] = pd.to_datetime(user_tasks['tarih'], errors='coerce')
-            user_work['Tarih_dt'] = pd.to_datetime(user_work['Tarih'], errors='coerce')
+            # --- 2. BİTİRİLEN KİTAPLAR MÜZESİ ---
+            bd_all = safe_read_csv(BOOKS_DATA, ["username", "book_name", "category", "status"])
             
-            yedi_gun_once = pd.Timestamp(date.today() - timedelta(days=7))
+            # Dosyada status yoksa veya boşsa Active yap
+            if 'status' not in bd_all.columns: bd_all['status'] = "Active"
+            bd_all['status'] = bd_all['status'].fillna("Active")
+            bd_all.loc[bd_all['status'] == "", 'status'] = "Active"
             
-            # --- 1. EFOR KARNESİ (SON 7 GÜN) ---
-            st.markdown("### 📊 Son 7 Günün Efor Karnesi")
-            recent_work = user_work[user_work['Tarih_dt'] >= yedi_gun_once]
-            
-            recent_work['Soru'] = pd.to_numeric(recent_work['Soru'], errors='coerce').fillna(0)
-            recent_work['Süre'] = pd.to_numeric(recent_work['Süre'], errors='coerce').fillna(0)
-            
-            last_7_q = recent_work['Soru'].sum()
-            last_7_time = recent_work['Süre'].sum()
-            
-            total_t = len(user_tasks)
-            done_t = len(user_tasks[user_tasks['durum'] == 'Tamamlandı'])
-            sadakat = (done_t / total_t * 100) if total_t > 0 else 0
-            
-            bekleyen_sayisi = len(user_tasks[user_tasks['durum'] == 'Yapılmadı'])
-            
-            m1, m2, m3, m4 = st.columns(4)
-            m1.metric("Son 7 Gün Çözülen Soru", int(last_7_q))
-            m2.metric("Son 7 Gün Çalışma Süresi", f"{int(last_7_time//60)}s {int(last_7_time%60)}dk")
-            m3.metric("Ödev Sadakati (Genel)", f"%{int(sadakat)}")
-            m4.metric("Aktif Bekleyen Ödev", bekleyen_sayisi)
-            
-            # --- 2. DARBOĞAZ VE ALARMLAR ---
+            completed_books = bd_all[(bd_all['username'] == target) & (bd_all['status'] == 'Completed')]
+            if not completed_books.empty:
+                with st.expander("🏆 BİTİRİLEN KİTAPLAR GURUR TABLOSU"):
+                    for idx, row in completed_books.iterrows():
+                        st.success(f"🏅 {row['category']} - {row['book_name']}")
+                        
             st.markdown("<br>", unsafe_allow_html=True)
-            if bekleyen_sayisi >= 5:
-                st.error(f"🚨 **DARBOĞAZ UYARISI:** Öğrencinin elinde eritmediği {bekleyen_sayisi} adet ödev birikmiş. Yeni ödev yüklemesi yapmadan önce stratejini gözden geçir!")
-            elif bekleyen_sayisi == 0 and total_t > 0:
-                st.success("🔥 **MÜKEMMEL:** Öğrenci tüm ödevlerini eritmiş, yeni görevlere tamamen aç!")
-                
-            st.markdown("---")
-            
-            # --- 3. GEÇEN HAFTANIN RÖNTGENİ ---
-            st.markdown("### 🗓️ Geçen Görüşmeden Bugüne (Son 7 Günlük Ödevler)")
-            recent_tasks = user_tasks[user_tasks['tarih_dt'] >= yedi_gun_once]
-            if not recent_tasks.empty:
-                display_rt = recent_tasks[['tarih', 'ders', 'konu', 'book', 'durum']].sort_values(by="tarih", ascending=False)
-                st.dataframe(display_rt, use_container_width=True, hide_index=True)
-            else:
-                st.info("Son 7 gün içinde verilmiş bir ödev kaydı bulunmuyor.")
 
-            st.markdown("---")
-            
-            # --- 4. KİTAP ANALİZİ VE YENİ ÖDEV ---
-            st.markdown("### 🎯 Akıllı Ödev Atama Motoru")
-            
-            with st.expander("➕ Sisteme Yeni Kitap Ekle"):
-                bn = st.text_input("Kitap Adı")
-                bc = st.selectbox("Ders", list(CIZELGE_DETAY.keys()), key="new_book_lesson")
+            # --- 3. AKILLI YENİ KİTAP EKLEME (ÖNERİ SİSTEMLİ) ---
+            st.markdown("### 📚 Sisteme Yeni Kitap Ekle")
+            with st.expander("➕ Yeni Kitap Tanımla (Önerileri Görmek İçin Tıklayın)"):
+                bc = st.selectbox("Ders Seç", list(CIZELGE_DETAY.keys()), key="new_book_lesson")
+                
+                # Önerileri Çek
+                oneriler = KITAP_ONERILERI.get(bc, [])
+                secenekler = ["Listeden Seç..."] + oneriler + ["✍️ Kendi Kitabımı Yazacağım (Manuel)"]
+                secilen_oneri = st.selectbox("Önerilen Kitaplar", secenekler)
+                
+                bn = ""
+                if secilen_oneri == "✍️ Kendi Kitabımı Yazacağım (Manuel)":
+                    bn = st.text_input("Kitap Adını Yazın:")
+                elif secilen_oneri != "Listeden Seç...":
+                    bn = secilen_oneri
+                    
                 st.markdown("<br>", unsafe_allow_html=True)
                 if st.button("Kitabı Ekle"):
-                    bd = safe_read_csv(BOOKS_DATA, ["username", "book_name", "category", "status"])
-                    pd.concat([bd, pd.DataFrame([[target, bn, bc, "Active"]], columns=bd.columns)]).to_csv(BOOKS_DATA, index=False)
-                    st.success("Kitap eklendi!")
+                    if bn:
+                        new_book_df = pd.DataFrame([[target, bn, bc, "Active"]], columns=["username", "book_name", "category", "status"])
+                        bd_all = pd.concat([bd_all, new_book_df], ignore_index=True)
+                        bd_all.to_csv(BOOKS_DATA, index=False)
+                        st.success(f"Harika! {bn} sisteme eklendi.")
+                        time.sleep(1); st.rerun()
+                    else:
+                        st.error("Lütfen listeden bir kitap seçin veya adını yazın.")
+
+            st.markdown("---")
+
+            # --- 4. ÖDEV VERME (ÖNCE DERS SONRA KİTAP) ---
+            st.markdown("### 🎯 Akıllı Ödev Atama Motoru")
             
-            try: 
-                bd = safe_read_csv(BOOKS_DATA, ["username", "book_name", "category"])
-                user_bks = bd[bd['username']==target]
-                bks = user_bks['book_name'].tolist()
-            except: bks = []
+            active_books = bd_all[(bd_all['username'] == target) & (bd_all['status'] == 'Active')]
             
-            if bks:
-                st.markdown("<br>", unsafe_allow_html=True)
-                s_kitap = st.selectbox("📚 Kitap Seç ve Analizi Gör", bks)
+            if not active_books.empty:
+                available_lessons = active_books['category'].unique().tolist()
                 
-                secilen_ders = user_bks[user_bks['book_name'] == s_kitap].iloc[0]['category']
+                c_ders, c_kitap = st.columns(2)
+                filter_ders = c_ders.selectbox("1️⃣ Önce Dersi Seç", available_lessons)
                 
-                # KITAP RÖNTGENİ (Isı Haritası Mantığı)
+                filtered_books = active_books[active_books['category'] == filter_ders]['book_name'].tolist()
+                s_kitap = c_kitap.selectbox("2️⃣ Kitabı Seç", filtered_books)
+                
+                secilen_ders = filter_ders # Zaten filtreledik
+                
+                # KİTAP RÖNTGENİ
                 st.markdown(f"""
                 <div style='background: #0f172a; border: 1px solid #3b82f6; border-radius: 10px; padding: 20px; margin-top: 15px; margin-bottom: 25px;'>
                     <h4 style='color: #60a5fa; margin-top: 0;'>{s_kitap} ({secilen_ders})</h4>
@@ -968,30 +1008,48 @@ elif st.session_state.logged_in:
                     
                 st.markdown("</div>", unsafe_allow_html=True)
                 
-                # ÖDEV FORMU (Emojili Kalkan)
-                konu_secenekleri = []
-                for k in tum_konular:
-                    if k in tamamlananlar: konu_secenekleri.append(f"✅ {k} (Bitti)")
-                    elif k in bekleyenler: konu_secenekleri.append(f"⏳ {k} (Ödevde)")
-                    else: konu_secenekleri.append(k)
+                # MÜZE KONTROLÜ (Kitap bitti mi?)
+                if len(tum_konular) > 0 and len(tamamlananlar) >= len(tum_konular):
+                    st.balloons()
+                    st.success("🎉 İNANILMAZ! Öğrenci bu kitabın müfredatındaki tüm konuları bitirmiş!")
+                    if st.button("🏆 Kitabı Bitirilenler Listesine Arşivle", type="primary", use_container_width=True):
+                        # Kitabın statüsünü Completed yap
+                        bd_all.loc[(bd_all['username']==target) & (bd_all['book_name']==s_kitap), 'status'] = 'Completed'
+                        bd_all.to_csv(BOOKS_DATA, index=False)
+                        st.rerun()
+                else:
+                    # NORMAL ÖDEV FORMU
+                    konu_secenekleri = []
+                    for k in tum_konular:
+                        if k in tamamlananlar: konu_secenekleri.append(f"✅ {k} (Bitti)")
+                        elif k in bekleyenler: konu_secenekleri.append(f"⏳ {k} (Ödevde)")
+                        else: konu_secenekleri.append(k)
+                        
+                    c_form1, c_form2 = st.columns([2, 1])
+                    s_konu_display = c_form1.selectbox("Hangi Konuyu Vereceksin?", konu_secenekleri)
+                    s_konu_gercek = s_konu_display.replace("✅ ", "").replace(" (Bitti)", "").replace("⏳ ", "").replace(" (Ödevde)", "")
                     
-                c_form1, c_form2 = st.columns([2, 1])
-                s_konu_display = c_form1.selectbox("Hangi Konuyu Vereceksin?", konu_secenekleri)
-                s_konu_gercek = s_konu_display.replace("✅ ", "").replace(" (Bitti)", "").replace("⏳ ", "").replace(" (Ödevde)", "")
-                
-                s_detay = c_form2.text_input("Sayfa / Test Aralığı")
-                
-                if "✅" in s_konu_display: st.warning("⚠️ DİKKAT: Bu konuyu zaten BİTİRMİŞ! Emin misin?")
-                if "⏳" in s_konu_display: st.error("🚨 HATA: Bu konu şu an AKTİF ÖDEV olarak elinde bekliyor! Üst üste verme.")
-                
-                st.markdown("<br>", unsafe_allow_html=True)
-                if st.button("🚀 ÖDEVİ GÖNDER", use_container_width=True):
-                    td = safe_read_csv(TASKS_DATA, ["id", "username", "book", "ders", "konu", "gorev", "durum", "tarih"])
-                    new_task = pd.DataFrame([[int(time.time()), target, s_kitap, secilen_ders, s_konu_gercek, s_detay, "Yapılmadı", str(date.today())]], columns=td.columns)
-                    pd.concat([td, new_task], ignore_index=True).to_csv(TASKS_DATA, index=False)
-                    st.success(f"GÖREV VERİLDİ: {s_konu_gercek}")
-                    time.sleep(1); st.rerun()
-            else: st.warning("Bu öğrenciye atanmış bir kitap yok.")
+                    s_detay = c_form2.text_input("Sayfa / Test Aralığı")
+                    
+                    if "✅" in s_konu_display: st.warning("⚠️ DİKKAT: Bu konuyu zaten BİTİRMİŞ! Emin misin?")
+                    if "⏳" in s_konu_display: st.error("🚨 HATA: Bu konu şu an AKTİF ÖDEV olarak elinde bekliyor! Üst üste verme.")
+                    
+                    st.markdown("<br>", unsafe_allow_html=True)
+                    if st.button("🚀 ÖDEVİ GÖNDER", use_container_width=True):
+                        new_task = pd.DataFrame([[int(time.time()), target, s_kitap, secilen_ders, s_konu_gercek, s_detay, "Yapılmadı", str(date.today())]], columns=["id", "username", "book", "ders", "konu", "gorev", "durum", "tarih"])
+                        td = pd.concat([td, new_task], ignore_index=True)
+                        td.to_csv(TASKS_DATA, index=False)
+                        st.success(f"GÖREV VERİLDİ: {s_konu_gercek}")
+                        time.sleep(1); st.rerun()
+            else: 
+                st.warning("Bu öğrenciye atanmış AKTİF bir kitap yok. Önce üstteki menüden yeni bir kitap ekleyin.")
+            
+            st.write("---")
+            st.write(f"### 📋 {target} - Tüm Ödev Geçmişi")
+            try:
+                display_past = user_tasks[['tarih', 'ders', 'konu', 'gorev', 'durum', 'book']].sort_values(by="tarih", ascending=False)
+                st.dataframe(display_past, use_container_width=True)
+            except: st.write("Henüz ödev kaydı yok.")
             
         else: st.warning("Sistemde kayıtlı koçluk öğrencisi bulunamadı.")
         
@@ -1197,7 +1255,7 @@ elif st.session_state.logged_in:
     
     elif st.session_state.page == 'admin_books':
         st.header("Öğrenci Kitapları")
-        try: st.dataframe(safe_read_csv(BOOKS_DATA, ["username", "book_name", "category"]))
+        try: st.dataframe(safe_read_csv(BOOKS_DATA, ["username", "book_name", "category", "status"]))
         except: st.write("Kitap yok")
         st.markdown("<br><br><br><br><br>", unsafe_allow_html=True)
 

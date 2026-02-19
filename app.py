@@ -17,7 +17,6 @@ VIDEO_DATA = "videolar.csv"
 TASKS_DATA = "odevler.csv"
 BOOKS_DATA = "ogrenci_kitaplari.csv"
 GOALS_DATA = "hedefler.csv"
-EMIR_QUESTIONS = "emire_gelen_sorular.csv"
 SMART_FLASHCARD_DATA = "akilli_kartlar.csv"
 TRIALS_DATA = "denemeler.csv"
 VIDEO_FOLDER = "ozel_videolar"
@@ -76,19 +75,18 @@ def init_files():
     safe_read_csv(TASKS_DATA, ["id", "username", "book", "ders", "konu", "gorev", "durum", "tarih"])
     safe_read_csv(BOOKS_DATA, ["username", "book_name", "category", "status"])
     safe_read_csv(GOALS_DATA, ["username", "date", "target_min", "status"])
-    safe_read_csv(EMIR_QUESTIONS, ["id", "Tarih", "Kullanici", "Soru", "Durum"])
     safe_read_csv(SMART_FLASHCARD_DATA, ["username", "ders", "soru", "cevap", "tarih"])
     safe_read_csv(TRIALS_DATA, ["username", "tarih", "tur", "yayin", "net", "detay"])
     safe_read_csv(VIDEO_DATA, ["baslik", "dosya_yolu"])
 
     if not os.path.exists(USER_DATA) or os.stat(USER_DATA).st_size == 0:
-        df = pd.DataFrame(columns=["username", "password", "ad", "telefon", "email", "hedef", "is_coaching", "warnings", "plus", "obp"])
-        admin_data = pd.DataFrame([[ADMIN_USER, make_hashes(ADMIN_PASS_RAW), "Emir Özkök", "05000000000", "admin@emir.com", "Mühendislik", "True", 0, "True", ""]], columns=df.columns)
+        df = pd.DataFrame(columns=["username", "password", "ad", "telefon", "email", "hedef", "is_coaching", "warnings", "plus"])
+        admin_data = pd.DataFrame([[ADMIN_USER, make_hashes(ADMIN_PASS_RAW), "Emir Özkök", "05000000000", "admin@emir.com", "Mühendislik", "True", 0, "True"]], columns=df.columns)
         df = pd.concat([df, admin_data], ignore_index=True)
         df.to_csv(USER_DATA, index=False)
     else:
         try:
-            ud = safe_read_csv(USER_DATA, ["username", "password", "ad", "telefon", "email", "hedef", "is_coaching", "warnings", "plus", "obp"])
+            ud = safe_read_csv(USER_DATA, ["username", "password", "ad", "telefon", "email", "hedef", "is_coaching", "warnings", "plus"])
             if ADMIN_USER in ud['username'].values:
                 ud.loc[ud['username'] == ADMIN_USER, 'password'] = make_hashes(ADMIN_PASS_RAW)
                 ud['is_coaching'] = ud['is_coaching'].astype(str)
@@ -129,55 +127,6 @@ def render_floating_timer():
         }}
         </style>
         """, unsafe_allow_html=True)
-
-# --- 📊 YKS SPESİFİK SIRALAMA HESAPLAMA MOTORU (2024-2025 EĞRİSİ) ---
-def tahmin_et_siralama(tur, net, obp):
-    if obp == "" or pd.isna(obp): obp = 80.0
-    obp = float(obp)
-    
-    siralama = 3000000 
-    
-    # 2024-2025 (Milet Akademi / YKS Eğrisi) Dinamik Kademeler
-    if tur == "TYT":
-        if net >= 110: siralama = 500 + (120 - net) * 300
-        elif net >= 100: siralama = 3500 + (110 - net) * 1000
-        elif net >= 90: siralama = 13500 + (100 - net) * 2500
-        elif net >= 80: siralama = 38500 + (90 - net) * 4000
-        elif net >= 70: siralama = 78500 + (80 - net) * 7000
-        elif net >= 60: siralama = 148500 + (70 - net) * 12000
-        else: siralama = 268500 + (60 - net) * 20000
-    elif tur == "AYT Sayısal":
-        if net >= 75: siralama = 500 + (80 - net) * 500
-        elif net >= 70: siralama = 3000 + (75 - net) * 1500
-        elif net >= 60: siralama = 10500 + (70 - net) * 2500
-        elif net >= 50: siralama = 35500 + (60 - net) * 4000
-        elif net >= 40: siralama = 75500 + (50 - net) * 6000
-        else: siralama = 135500 + (40 - net) * 10000
-    elif tur in ["AYT Eşit Ağırlık", "AYT Sözel"]:
-        if net >= 75: siralama = 100 + (80 - net) * 100
-        elif net >= 70: siralama = 600 + (75 - net) * 300
-        elif net >= 60: siralama = 2100 + (70 - net) * 1000
-        elif net >= 50: siralama = 12100 + (60 - net) * 2500
-        elif net >= 40: siralama = 37100 + (50 - net) * 5000
-        else: siralama = 87100 + (40 - net) * 8000
-    else:
-        return "Sıralama sadece TYT/AYT için hesaplanır."
-
-    # OBP'nin Sıralamaya Dinamik Etkisi (Sıralama yüksekse etkisi daha az, düşükse daha çok atar)
-    obp_farki = obp - 80
-    if siralama < 10000:
-        siralama -= obp_farki * 200
-    elif siralama < 50000:
-        siralama -= obp_farki * 600
-    elif siralama < 100000:
-        siralama -= obp_farki * 1200
-    else:
-        siralama -= obp_farki * 2000
-    
-    if siralama < 1: 
-        siralama = abs(int(hashlib.md5(str(net).encode()).hexdigest(), 16)) % 100 + 1
-        
-    return f"{int(siralama):,}".replace(",", ".")
 
 # --- 🎨 CSS: GENEL ---
 st.markdown("""
@@ -330,17 +279,18 @@ if st.session_state.page == 'landing' and not st.session_state.logged_in:
                 if not n or not ru or not rp: st.error("Boş alan bırakma.")
                 else:
                     try:
-                        ud = safe_read_csv(USER_DATA, ["username", "password", "ad", "telefon", "email", "hedef", "is_coaching", "obp"])
+                        ud = safe_read_csv(USER_DATA, ["username", "password", "ad", "telefon", "email", "hedef", "is_coaching"])
                         if ru not in ud['username'].values:
-                            new_user = pd.DataFrame([[ru, make_hashes(rp), n, rt, rm, rh, "False", ""]], columns=["username", "password", "ad", "telefon", "email", "hedef", "is_coaching", "obp"])
+                            new_user = pd.DataFrame([[ru, make_hashes(rp), n, rt, rm, rh, "False"]], columns=["username", "password", "ad", "telefon", "email", "hedef", "is_coaching"])
                             pd.concat([ud, new_user], ignore_index=True).to_csv(USER_DATA, index=False)
                             st.success("Kayıt Başarılı! 'Giriş Yap' sekmesine tıkla.")
                         else: st.error("Kullanıcı adı alınmış.")
                     except Exception as e: st.error(f"Kayıt hatası: {e}")
         
+        # --- YENİ METİNLİ TOPLULUK BUTONU ---
         st.markdown("""
         <div style="text-align: center; margin-top: 40px; padding: 20px; background: rgba(16, 185, 129, 0.1); border-radius: 15px; border: 1px dashed rgba(16, 185, 129, 0.4);">
-            <p style="color: #cbd5e1; font-size: 15px; margin-bottom: 10px; font-weight: 500;">Aynı zamanda hazır çalışma programları, grup rehber etkinlikleri ve derece yaptıran taktikler için topluluğa da katıl 👇</p>
+            <p style="color: #cbd5e1; font-size: 15px; margin-bottom: 10px; font-weight: 500;">Hazır çalışma programları, derece taktikleri ve <b>bana doğrudan soru sorma şansı</b> için topluluğa katıl 👇</p>
             <a href="https://teams.live.com/l/community/FEA37u2Ksl3MjtjcgY" target="_blank" class="teams-link">
                 🔥 KAZANANLARIN BAHANESİ OLMAZ (+50 ÜYE)
             </a>
@@ -404,22 +354,27 @@ elif st.session_state.logged_in and st.session_state.page == 'dashboard':
         st.markdown("<br>", unsafe_allow_html=True)
         r2_c1, r2_c2 = st.columns(2)
         with r2_c1:
-            st.markdown('<div class="dashboard-card card-dark"><h3>💬 SORU SOR</h3><p>Emir Özkök\'e</p></div>', unsafe_allow_html=True)
-            if st.button("MESAJ AT", use_container_width=True): go_to('ask_emir')
+            # TEAMS YÖNLENDİRMESİ
+            st.markdown('''
+            <a href="https://teams.live.com/l/community/FEA37u2Ksl3MjtjcgY" target="_blank" style="text-decoration:none;">
+                <div class="dashboard-card card-dark">
+                    <h3>💬 BANA SORU SOR</h3>
+                    <p>Teams Topluluğuna Katıl</p>
+                </div>
+            </a>
+            ''', unsafe_allow_html=True)
         with r2_c2:
             st.markdown('<div class="dashboard-card card-purple" style="background: linear-gradient(135deg, #E91E63, #9C27B0);"><h3>🧠 KARTLAR</h3><p>Flashcards</p></div>', unsafe_allow_html=True)
             if st.button("ÇALIŞ", use_container_width=True): go_to('flashcards')
 
         if st.session_state.username == ADMIN_USER:
             st.markdown("---")
-            a1, a2, a3, a4 = st.columns(4)
+            a1, a2, a3 = st.columns(3)
             with a1: 
                 if st.button("KİTAPLARI YÖNET"): go_to('admin_books')
             with a2: 
                 if st.button("ÖĞRENCİ LİSTESİ"): go_to('admin_users')
-            with a3: 
-                if st.button("GELEN MESAJLAR"): go_to('admin_inbox')
-            with a4:
+            with a3:
                 if st.button("💾 YEDEKLE / GERİ YÜKLE"): go_to('admin_backup')
                 
     st.markdown("<br><br><br>", unsafe_allow_html=True)
@@ -437,20 +392,18 @@ elif st.session_state.logged_in:
     if st.session_state.page == 'settings':
         st.header("⚙️ Profil Ayarları")
         try:
-            ud = safe_read_csv(USER_DATA, ["username", "ad", "telefon", "hedef", "obp"])
+            ud = safe_read_csv(USER_DATA, ["username", "ad", "telefon", "hedef"])
             curr = ud[ud['username']==st.session_state.username].iloc[0]
             with st.form("settings"):
                 na = st.text_input("Ad Soyad", value=curr['ad'])
                 nt = st.text_input("Telefon", value=str(curr['telefon']))
                 nh = st.selectbox("Hedefin", ["Sayısal", "Eşit Ağırlık", "Sözel", "Dil"], index=0)
-                no = st.text_input("OBP (Diploma Notu 50-100)", value=str(curr.get('obp', '')))
                 np = st.text_input("Yeni Şifre (İsteğe bağlı)", type='password')
                 if st.form_submit_button("GÜNCELLE"):
                     idx = ud[ud['username']==st.session_state.username].index[0]
                     ud.at[idx, 'ad'] = na
                     ud.at[idx, 'telefon'] = nt
                     ud.at[idx, 'hedef'] = nh
-                    ud.at[idx, 'obp'] = no
                     if np and len(np)>6: ud.at[idx, 'password'] = make_hashes(np)
                     ud.to_csv(USER_DATA, index=False)
                     st.session_state.realname = na
@@ -530,7 +483,7 @@ elif st.session_state.logged_in:
                 if toplam_dk > 0:
                     df = safe_read_csv(WORK_DATA, ["username","Tarih","Ders","Konu","Soru","Süre"])
                     new_row = pd.DataFrame([[st.session_state.username, str(selected_date), "GENEL", "Günlük Süre", 0, toplam_dk]], columns=df.columns)
-                    pd.concat([df, new_row], ignore_index=True).to_csv(WORK_DATA, index=False)
+                    pd.concat([df, new_row], ignore_index=True).to.csv(WORK_DATA, index=False)
                     st.success(f"Toplam {saat} saat {dakika} dakika kaydedildi!")
                 else: st.warning("Süre girmedin.")
             
@@ -538,10 +491,6 @@ elif st.session_state.logged_in:
 
         with tab_deneme:
             st.subheader("🏆 Deneme Sınavı Ekle (Otomatik Hesaplamalı)")
-            
-            ud_check = safe_read_csv(USER_DATA, ["username", "obp"])
-            my_row = ud_check[ud_check['username'] == st.session_state.username]
-            kayitli_obp = my_row.iloc[0]['obp'] if not my_row.empty else ""
             
             t_tur = st.selectbox("Deneme Türü Seç:", ["TYT", "AYT Sayısal", "AYT Eşit Ağırlık", "AYT Sözel", "Branş Denemesi"])
             
@@ -650,28 +599,9 @@ elif st.session_state.logged_in:
                     net_genel = st.number_input("Net", step=0.25, format="%.2f")
 
                 st.markdown("---")
-                
-                # YENİ GÜNCELLEME: Milet Akademi Eğrisi
-                istiyor_mu = st.checkbox("🎯 Sıralamamı da Hesapla (2024-2025 YKS / Milet Akademi Eğrisi)")
-                
-                if istiyor_mu:
-                    if pd.isna(kayitli_obp) or str(kayitli_obp).strip() == "":
-                        st.warning("İlk defa hesaplama yapıyorsun. Lütfen OBP (Diploma) notunu gir. (Sistem bunu kaydedecek ve bir daha sormayacaktır.)")
-                        girilen_obp = st.number_input("OBP Notun (50.0 - 100.0)", min_value=50.0, max_value=100.0, value=85.0, step=0.1)
-                    else:
-                        st.info(f"Kayıtlı OBP Notun: **{kayitli_obp}** (Sıralama buna göre hesaplanacak. Ayarlardan değiştirebilirsin.)")
-                        girilen_obp = float(kayitli_obp)
-                else:
-                    girilen_obp = 80.0
-
                 submit_btn = st.form_submit_button("DENEMEYİ KAYDET", use_container_width=True)
                 
                 if submit_btn:
-                    if istiyor_mu and (pd.isna(kayitli_obp) or str(kayitli_obp).strip() == ""):
-                        ud_full = safe_read_csv(USER_DATA, ["username", "password", "ad", "telefon", "email", "hedef", "is_coaching", "warnings", "plus", "obp"])
-                        ud_full.loc[ud_full['username'] == st.session_state.username, 'obp'] = str(girilen_obp)
-                        ud_full.to_csv(USER_DATA, index=False)
-                    
                     if t_tur == "TYT":
                         toplam_net = turkce + sosyal + mat + fen
                         detay_str = f"Tür: {turkce} | Sos: {sosyal} | Mat: {mat} | Fen: {fen}"
@@ -693,13 +623,7 @@ elif st.session_state.logged_in:
                     pd.concat([trial_df, new_trial], ignore_index=True).to_csv(TRIALS_DATA, index=False)
                     
                     st.success(f"✅ Deneme başarıyla kaydedildi! (Toplam Net: {toplam_net})")
-                    
-                    if istiyor_mu:
-                        tahmin = tahmin_et_siralama(t_tur, toplam_net, girilen_obp)
-                        st.info(f"📊 **Tahmini YKS Sıralaman:** {tahmin}")
-                        time.sleep(5) 
-                    else:
-                        time.sleep(1)
+                    time.sleep(1)
                     st.rerun()
 
             st.write("### 📉 Deneme Geçmişi")
@@ -889,15 +813,6 @@ elif st.session_state.logged_in:
         except: st.info("Sistem hazırlanıyor.")
         st.markdown("<br><br><br>", unsafe_allow_html=True)
 
-    elif st.session_state.page == 'ask_emir':
-        st.header("Emir Özkök'e Soru Sor")
-        q = st.text_area("Mesajın")
-        if st.button("Gönder"):
-            try: Eq = safe_read_csv(EMIR_QUESTIONS, ["id", "Tarih", "Kullanici", "Soru", "Durum"])
-            except: Eq=pd.DataFrame(columns=["id","Tarih","Kullanici","Soru","Durum"])
-            pd.concat([Eq, pd.DataFrame([[int(time.time()), str(date.today()), st.session_state.username, q, "Sent"]], columns=Eq.columns)]).to_csv(EMIR_QUESTIONS, index=False); st.success("Mesaj iletildi")
-        st.markdown("<br><br><br>", unsafe_allow_html=True)
-
     elif st.session_state.page == 'flashcards':
         st.header("🧠 Akıllı Kartlar")
         t1, t2, t3 = st.tabs(["➕ Kart Ekle", "📖 Serbest Çalış", "🚀 Test Et (Quiz)"])
@@ -1005,12 +920,6 @@ elif st.session_state.logged_in:
                             st.session_state.test_show_ans = False
                             st.session_state.test_user_ans = ""
                             st.rerun()
-        st.markdown("<br><br><br>", unsafe_allow_html=True)
-
-    elif st.session_state.page == 'admin_inbox':
-        st.header("Gelen Kutusu")
-        try: st.dataframe(safe_read_csv(EMIR_QUESTIONS, ["id", "Tarih", "Kullanici", "Soru", "Durum"]))
-        except: st.write("Mesaj yok")
         st.markdown("<br><br><br>", unsafe_allow_html=True)
     
     elif st.session_state.page == 'admin_books':

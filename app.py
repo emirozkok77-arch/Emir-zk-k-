@@ -130,37 +130,49 @@ def render_floating_timer():
         </style>
         """, unsafe_allow_html=True)
 
-# --- 📊 YKS SPESİFİK SIRALAMA HESAPLAMA MOTORU (2023-2024 EĞRİSİ) ---
+# --- 📊 YKS SPESİFİK SIRALAMA HESAPLAMA MOTORU (2024-2025 EĞRİSİ) ---
 def tahmin_et_siralama(tur, net, obp):
     if obp == "" or pd.isna(obp): obp = 80.0
     obp = float(obp)
     
     siralama = 3000000 
     
+    # 2024-2025 (Milet Akademi / YKS Eğrisi) Dinamik Kademeler
     if tur == "TYT":
-        if net >= 115: siralama = 100 + (120 - net) * 150
-        elif net >= 100: siralama = 1000 + (115 - net) * 1500
-        elif net >= 80: siralama = 23000 + (100 - net) * 3500
-        elif net >= 60: siralama = 93000 + (80 - net) * 5000
-        elif net >= 40: siralama = 193000 + (60 - net) * 10000
-        else: siralama = 393000 + (40 - net) * 20000
+        if net >= 110: siralama = 500 + (120 - net) * 300
+        elif net >= 100: siralama = 3500 + (110 - net) * 1000
+        elif net >= 90: siralama = 13500 + (100 - net) * 2500
+        elif net >= 80: siralama = 38500 + (90 - net) * 4000
+        elif net >= 70: siralama = 78500 + (80 - net) * 7000
+        elif net >= 60: siralama = 148500 + (70 - net) * 12000
+        else: siralama = 268500 + (60 - net) * 20000
     elif tur == "AYT Sayısal":
-        if net >= 75: siralama = 500 + (80 - net) * 600
-        elif net >= 65: siralama = 3500 + (75 - net) * 1500
-        elif net >= 50: siralama = 18500 + (65 - net) * 2500
-        elif net >= 30: siralama = 56000 + (50 - net) * 4000
-        else: siralama = 136000 + (30 - net) * 8000
+        if net >= 75: siralama = 500 + (80 - net) * 500
+        elif net >= 70: siralama = 3000 + (75 - net) * 1500
+        elif net >= 60: siralama = 10500 + (70 - net) * 2500
+        elif net >= 50: siralama = 35500 + (60 - net) * 4000
+        elif net >= 40: siralama = 75500 + (50 - net) * 6000
+        else: siralama = 135500 + (40 - net) * 10000
     elif tur in ["AYT Eşit Ağırlık", "AYT Sözel"]:
-        if net >= 70: siralama = 100 + (80 - net) * 200
-        elif net >= 55: siralama = 2100 + (70 - net) * 800
-        elif net >= 40: siralama = 14100 + (55 - net) * 2000
-        elif net >= 25: siralama = 44100 + (40 - net) * 4000
-        else: siralama = 104100 + (25 - net) * 7000
+        if net >= 75: siralama = 100 + (80 - net) * 100
+        elif net >= 70: siralama = 600 + (75 - net) * 300
+        elif net >= 60: siralama = 2100 + (70 - net) * 1000
+        elif net >= 50: siralama = 12100 + (60 - net) * 2500
+        elif net >= 40: siralama = 37100 + (50 - net) * 5000
+        else: siralama = 87100 + (40 - net) * 8000
     else:
         return "Sıralama sadece TYT/AYT için hesaplanır."
 
-    obp_farki = (obp - 80) * 1000
-    siralama = siralama - obp_farki
+    # OBP'nin Sıralamaya Dinamik Etkisi (Sıralama yüksekse etkisi daha az, düşükse daha çok atar)
+    obp_farki = obp - 80
+    if siralama < 10000:
+        siralama -= obp_farki * 200
+    elif siralama < 50000:
+        siralama -= obp_farki * 600
+    elif siralama < 100000:
+        siralama -= obp_farki * 1200
+    else:
+        siralama -= obp_farki * 2000
     
     if siralama < 1: 
         siralama = abs(int(hashlib.md5(str(net).encode()).hexdigest(), 16)) % 100 + 1
@@ -326,12 +338,11 @@ if st.session_state.page == 'landing' and not st.session_state.logged_in:
                         else: st.error("Kullanıcı adı alınmış.")
                     except Exception as e: st.error(f"Kayıt hatası: {e}")
         
-        # --- YENİ METİNLİ TOPLULUK BUTONU ---
         st.markdown("""
         <div style="text-align: center; margin-top: 40px; padding: 20px; background: rgba(16, 185, 129, 0.1); border-radius: 15px; border: 1px dashed rgba(16, 185, 129, 0.4);">
             <p style="color: #cbd5e1; font-size: 15px; margin-bottom: 10px; font-weight: 500;">Aynı zamanda hazır çalışma programları, grup rehber etkinlikleri ve derece yaptıran taktikler için topluluğa da katıl 👇</p>
             <a href="https://teams.live.com/l/community/FEA37u2Ksl3MjtjcgY" target="_blank" class="teams-link">
-                🔥 EMİR ÖZKÖK TOPLULUĞU (+50 ÜYE)
+                🔥 KAZANANLARIN BAHANESİ OLMAZ (+50 ÜYE)
             </a>
         </div>
         """, unsafe_allow_html=True)
@@ -445,6 +456,7 @@ elif st.session_state.logged_in:
                     st.session_state.realname = na
                     st.success("Bilgiler güncellendi!"); time.sleep(1); st.rerun()
         except Exception as e: st.error(f"Ayar hatası: {e}")
+        st.markdown("<br><br><br>", unsafe_allow_html=True)
 
     elif st.session_state.page == 'admin_users':
         st.header("👥 Öğrenci Yönetimi")
@@ -639,7 +651,8 @@ elif st.session_state.logged_in:
 
                 st.markdown("---")
                 
-                istiyor_mu = st.checkbox("🎯 Sıralamamı da Hesapla (Gerçek YKS Eğrisi ile Nokta Atışı Tahmin)")
+                # YENİ GÜNCELLEME: Milet Akademi Eğrisi
+                istiyor_mu = st.checkbox("🎯 Sıralamamı da Hesapla (2024-2025 YKS / Milet Akademi Eğrisi)")
                 
                 if istiyor_mu:
                     if pd.isna(kayitli_obp) or str(kayitli_obp).strip() == "":
@@ -998,11 +1011,13 @@ elif st.session_state.logged_in:
         st.header("Gelen Kutusu")
         try: st.dataframe(safe_read_csv(EMIR_QUESTIONS, ["id", "Tarih", "Kullanici", "Soru", "Durum"]))
         except: st.write("Mesaj yok")
+        st.markdown("<br><br><br>", unsafe_allow_html=True)
     
     elif st.session_state.page == 'admin_books':
         st.header("Öğrenci Kitapları")
         try: st.dataframe(safe_read_csv(BOOKS_DATA, ["username", "book_name"]))
         except: st.write("Kitap yok")
+        st.markdown("<br><br><br>", unsafe_allow_html=True)
 
     elif st.session_state.page == 'admin_backup':
         st.header("💾 YEDEKLEME VE GERİ YÜKLEME MERKEZİ")
@@ -1027,3 +1042,4 @@ elif st.session_state.logged_in:
                         df_upload.to_csv(original_name, index=False)
                         st.success(f"✅ {original_name} başarıyla geri yüklendi! Sayfayı yenile.")
                     except Exception as e: st.error(f"Hata: {e}")
+        st.markdown("<br><br><br>", unsafe_allow_html=True)

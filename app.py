@@ -17,6 +17,7 @@ VIDEO_DATA = "videolar.csv"
 TASKS_DATA = "odevler.csv"
 BOOKS_DATA = "ogrenci_kitaplari.csv"
 GOALS_DATA = "hedefler.csv"
+EMIR_QUESTIONS = "emire_gelen_sorular.csv"
 SMART_FLASHCARD_DATA = "akilli_kartlar.csv"
 TRIALS_DATA = "denemeler.csv"
 VIDEO_FOLDER = "ozel_videolar"
@@ -25,7 +26,7 @@ VIDEO_FOLDER = "ozel_videolar"
 ADMIN_USER = "emirozkok"
 ADMIN_PASS_RAW = "Hbaamaek7!.zemir" 
 
-# --- 📋 MÜFREDAT ---
+# --- 📋 MÜFREDAT (SADECE TYT VE AYT SAYISAL) ---
 CIZELGE_DETAY = {
     "TYT TÜRKÇE": ["Sözcükte Anlam", "Cümlede Anlam", "Paragraf", "Ses Bilgisi", "Yazım Kuralları", "Noktalama", "Sözcük Türleri", "Fiiller", "Cümlenin Ögeleri", "Anlatım Bozukluğu"],
     "TYT TARİH": ["Tarih Bilimine Giriş", "İlk Çağ", "İslamiyet Öncesi Türk", "İslam Tarihi", "Türk İslam", "Osmanlı (Kuruluş-Yükselme)", "Osmanlı (Duraklama-Dağılma)", "Milli Mücadele", "Atatürk İlkeleri"],
@@ -40,14 +41,10 @@ CIZELGE_DETAY = {
     "AYT MATEMATİK": ["Fonksiyonlar-2", "Polinomlar-2", "2. Dereceden Denklem", "Parabol", "Eşitsizlikler", "Trigonometri", "Logaritma", "Diziler", "Limit", "Türev", "İntegral"],
     "AYT FİZİK": ["Vektör", "Bağıl Hareket", "Newton", "Atışlar", "İtme-Momentum", "Tork-Denge", "Elektrik-Manyetizma", "Çembersel Hareket", "Harmonik Hareket", "Dalga Mekaniği", "Modern Fizik"],
     "AYT KİMYA": ["Modern Atom", "Gazlar", "Sıvı Çözeltiler", "Enerji", "Hız", "Denge", "Asit-Baz Dengesi", "KÇÇ", "Elektrik", "Organik"],
-    "AYT BİYOLOJİ": ["Sistemler", "Komünite", "Genden Proteine", "Canlılık ve Enerji", "Bitki Biyolojisi"],
-    "AYT EDEBİYAT": ["Şiir Bilgisi", "Edebi Sanatlar", "İslamiyet Öncesi", "Halk Edebiyatı", "Divan", "Tanzimat", "Servet-i Fünun", "Milli Edebiyat", "Cumhuriyet"],
-    "AYT TARİH": ["Tarih Bilimi", "İlk Türk Devletleri", "İslam Tarihi", "Türk-İslam", "Osmanlı Tarihi", "İnkılap Tarihi", "Çağdaş Türk Dünya"],
-    "AYT COĞRAFYA": ["Biyoçeşitlilik", "Ekosistem", "Nüfus Politikaları", "Türkiye Ekonomisi", "Kültür Bölgeleri", "Küresel Ticaret", "Çevre Sorunları"]
+    "AYT BİYOLOJİ": ["Sistemler", "Komünite", "Genden Proteine", "Canlılık ve Enerji", "Bitki Biyolojisi"]
 }
 
 FLASHCARD_DERSLER = list(CIZELGE_DETAY.keys())
-ODEV_DERSLERI = list(CIZELGE_DETAY.keys())
 
 # --- 🛡️ GÜVENLİ DOSYA OKUMA ---
 def safe_read_csv(file_path, columns):
@@ -128,12 +125,14 @@ def render_floating_timer():
         </style>
         """, unsafe_allow_html=True)
 
+
 # --- 🎨 CSS: GENEL ---
 st.markdown("""
 <style>
     .stApp { background-color: #02040a; color: #e2e8f0; font-family: 'Inter', sans-serif; }
     header, footer, #MainMenu, .stDeployButton, div[class^='viewerBadge'] {display: none !important;}
     
+    /* Sayfa sonu boşluğu - butonların dibe yapışmasını engeller */
     .block-container { padding-top: 1rem !important; padding-bottom: 150px !important; }
 
     .dashboard-card {
@@ -193,7 +192,8 @@ if st.session_state.page == 'landing' and not st.session_state.logged_in:
     <style>
     div[data-testid="stTabs"] {
         background: rgba(15, 23, 42, 0.9);
-        padding: 25px; 
+        /* Kutu alt boşluğu artırıldı (dibe yapışmasın diye) */
+        padding: 30px 30px 45px 30px; 
         border-radius: 20px;
         border: 2px solid #3b82f6; 
         box-shadow: 0 0 40px rgba(59, 130, 246, 0.4);
@@ -251,6 +251,7 @@ if st.session_state.page == 'landing' and not st.session_state.logged_in:
             st.markdown("<br>", unsafe_allow_html=True)
             u = st.text_input("Kullanıcı Adı", key="l_u")
             p = st.text_input("Şifre", type='password', key="l_p")
+            st.markdown("<br>", unsafe_allow_html=True) # Butonun üstüne boşluk eklendi
             if st.button("GİRİŞ YAP", use_container_width=True):
                 try:
                     ud = safe_read_csv(USER_DATA, ["username", "password", "ad", "is_coaching"])
@@ -274,7 +275,7 @@ if st.session_state.page == 'landing' and not st.session_state.logged_in:
             rh = st.selectbox("Hedefin (Bölüm)", ["Sayısal", "Eşit Ağırlık", "Sözel", "Dil"], key="r_h")
             rt = st.text_input("Telefon", key="r_t", max_chars=11)
             rm = st.text_input("E-posta", key="r_m")
-            
+            st.markdown("<br>", unsafe_allow_html=True) # Butonun üstüne boşluk eklendi
             if st.button("KAYDI TAMAMLA", use_container_width=True):
                 if not n or not ru or not rp: st.error("Boş alan bırakma.")
                 else:
@@ -289,13 +290,15 @@ if st.session_state.page == 'landing' and not st.session_state.logged_in:
         
         # --- YENİ METİNLİ TOPLULUK BUTONU ---
         st.markdown("""
-        <div style="text-align: center; margin-top: 40px; padding: 20px; background: rgba(16, 185, 129, 0.1); border-radius: 15px; border: 1px dashed rgba(16, 185, 129, 0.4);">
-            <p style="color: #cbd5e1; font-size: 15px; margin-bottom: 10px; font-weight: 500;">Hazır çalışma programları, derece taktikleri ve <b>bana doğrudan soru sorma şansı</b> için topluluğa katıl 👇</p>
+        <div style="text-align: center; margin-top: 40px; padding: 25px; background: rgba(16, 185, 129, 0.1); border-radius: 15px; border: 1px dashed rgba(16, 185, 129, 0.4);">
+            <p style="color: #cbd5e1; font-size: 15px; margin-bottom: 15px; font-weight: 500;">Hazır çalışma programları, grup rehberlik etkinlikleri, derece yaptıran taktikler ve <b>bana doğrudan soru sorma şansı</b> için topluluğa da katıl 👇</p>
             <a href="https://teams.live.com/l/community/FEA37u2Ksl3MjtjcgY" target="_blank" class="teams-link">
                 🔥 KAZANANLARIN BAHANESİ OLMAZ (+50 ÜYE)
             </a>
         </div>
         """, unsafe_allow_html=True)
+        
+        st.markdown("<br><br><br>", unsafe_allow_html=True) # Sayfa sonu rahatlaması
 
 # ==========================================
 # 2. DASHBOARD
@@ -354,12 +357,12 @@ elif st.session_state.logged_in and st.session_state.page == 'dashboard':
         st.markdown("<br>", unsafe_allow_html=True)
         r2_c1, r2_c2 = st.columns(2)
         with r2_c1:
-            # TEAMS YÖNLENDİRMESİ
+            # TEAMS YÖNLENDİRMESİ SADELEŞTİ (Soru Sor Kalktı, Topluluk Geldi)
             st.markdown('''
             <a href="https://teams.live.com/l/community/FEA37u2Ksl3MjtjcgY" target="_blank" style="text-decoration:none;">
                 <div class="dashboard-card card-dark">
-                    <h3>💬 BANA SORU SOR</h3>
-                    <p>Teams Topluluğuna Katıl</p>
+                    <h3>💬 TOPLULUĞA GİT</h3>
+                    <p>Bana Soru Sor</p>
                 </div>
             </a>
             ''', unsafe_allow_html=True)
@@ -399,6 +402,7 @@ elif st.session_state.logged_in:
                 nt = st.text_input("Telefon", value=str(curr['telefon']))
                 nh = st.selectbox("Hedefin", ["Sayısal", "Eşit Ağırlık", "Sözel", "Dil"], index=0)
                 np = st.text_input("Yeni Şifre (İsteğe bağlı)", type='password')
+                st.markdown("<br>", unsafe_allow_html=True)
                 if st.form_submit_button("GÜNCELLE"):
                     idx = ud[ud['username']==st.session_state.username].index[0]
                     ud.at[idx, 'ad'] = na
@@ -417,6 +421,7 @@ elif st.session_state.logged_in:
         ud = safe_read_csv(USER_DATA, ["username", "is_coaching"])
         ud['is_coaching'] = ud['is_coaching'].apply(lambda x: str(x).lower() in ['true', '1', 'yes'])
         edited_df = st.data_editor(ud, num_rows="dynamic", column_config={"is_coaching": st.column_config.CheckboxColumn("Koçluk Öğrencisi mi?", default=False)})
+        st.markdown("<br>", unsafe_allow_html=True)
         if st.button("💾 DEĞİŞİKLİKLERİ KAYDET"):
             edited_df['is_coaching'] = edited_df['is_coaching'].astype(str)
             edited_df.to_csv(USER_DATA, index=False)
@@ -448,6 +453,7 @@ elif st.session_state.logged_in:
                 use_container_width=True
             )
             
+            st.markdown("<br>", unsafe_allow_html=True)
             if st.button("💾 LİSTEYİ KAYDET", type="primary"):
                 try: df = safe_read_csv(WORK_DATA, ["username","Tarih","Ders","Konu","Soru","Süre"])
                 except: df = pd.DataFrame(columns=["username","Tarih","Ders","Konu","Soru","Süre"])
@@ -478,21 +484,23 @@ elif st.session_state.logged_in:
             c_h, c_m, c_b = st.columns([1, 1, 1])
             saat = c_h.number_input("Saat", 0, 24, 0)
             dakika = c_m.number_input("Dakika", 0, 59, 0)
+            st.markdown("<br>", unsafe_allow_html=True)
             if c_b.button("Süreyi Kaydet"):
                 toplam_dk = (saat * 60) + dakika
                 if toplam_dk > 0:
                     df = safe_read_csv(WORK_DATA, ["username","Tarih","Ders","Konu","Soru","Süre"])
                     new_row = pd.DataFrame([[st.session_state.username, str(selected_date), "GENEL", "Günlük Süre", 0, toplam_dk]], columns=df.columns)
-                    pd.concat([df, new_row], ignore_index=True).to.csv(WORK_DATA, index=False)
+                    pd.concat([df, new_row], ignore_index=True).to_csv(WORK_DATA, index=False)
                     st.success(f"Toplam {saat} saat {dakika} dakika kaydedildi!")
                 else: st.warning("Süre girmedin.")
             
             st.markdown("<br><br><br><br><br>", unsafe_allow_html=True)
 
         with tab_deneme:
-            st.subheader("🏆 Deneme Sınavı Ekle (Otomatik Hesaplamalı)")
+            st.subheader("🏆 Deneme Sınavı Ekle")
             
-            t_tur = st.selectbox("Deneme Türü Seç:", ["TYT", "AYT Sayısal", "AYT Eşit Ağırlık", "AYT Sözel", "Branş Denemesi"])
+            # SADECE TYT VE AYT SAYISAL
+            t_tur = st.selectbox("Deneme Türü Seç:", ["TYT", "AYT Sayısal", "Branş Denemesi"])
             
             with st.form("trial_form"):
                 c_t1, c_t2 = st.columns(2)
@@ -500,7 +508,7 @@ elif st.session_state.logged_in:
                 t_yayin = c_t2.text_input("Yayın Evi (Örn: 345, Bilgi Sarmal)")
                 
                 st.markdown("---")
-                st.markdown("#### 📝 Doğru ve Yanlışlarını Gir (Netler Otomatik Hesaplanır)")
+                st.markdown("#### 📝 Doğru ve Yanlışlarını Gir (Sıralama Olayı Kaldırıldı)")
                 
                 if t_tur == "TYT":
                     c_n1, c_n2, c_n3, c_n4 = st.columns(4)
@@ -547,58 +555,13 @@ elif st.session_state.logged_in:
                         b_d = st.number_input("D", 0, 13, key="b_d")
                         b_y = st.number_input("Y", 0, 13, key="b_y")
                         biyo = b_d - (b_y * 0.25)
-                        
-                elif t_tur == "AYT Eşit Ağırlık":
-                    c_n1, c_n2, c_n3, c_n4 = st.columns(4)
-                    with c_n1:
-                        st.markdown("**Matematik (40)**")
-                        m_d = st.number_input("D", 0, 40, key="ea_m_d")
-                        m_y = st.number_input("Y", 0, 40, key="ea_m_y")
-                        mat = m_d - (m_y * 0.25)
-                    with c_n2:
-                        st.markdown("**Edebiyat (24)**")
-                        e_d = st.number_input("D", 0, 24, key="e_d")
-                        e_y = st.number_input("Y", 0, 24, key="e_y")
-                        edebiyat = e_d - (e_y * 0.25)
-                    with c_n3:
-                        st.markdown("**Tarih-1 (10)**")
-                        t1_d = st.number_input("D", 0, 10, key="t1_d")
-                        t1_y = st.number_input("Y", 0, 10, key="t1_y")
-                        tarih1 = t1_d - (t1_y * 0.25)
-                    with c_n4:
-                        st.markdown("**Coğrafya-1 (6)**")
-                        c1_d = st.number_input("D", 0, 6, key="c1_d")
-                        c1_y = st.number_input("Y", 0, 6, key="c1_y")
-                        cog1 = c1_d - (c1_y * 0.25)
-
-                elif t_tur == "AYT Sözel":
-                    c_n1, c_n2, c_n3, c_n4 = st.columns(4)
-                    with c_n1:
-                        st.markdown("**Edebiyat (24)**")
-                        e_d = st.number_input("D", 0, 24, key="sz_e_d")
-                        e_y = st.number_input("Y", 0, 24, key="sz_e_y")
-                        edebiyat = e_d - (e_y * 0.25)
-                    with c_n2:
-                        st.markdown("**Tarih-1 (10)**")
-                        t1_d = st.number_input("D", 0, 10, key="sz_t1_d")
-                        t1_y = st.number_input("Y", 0, 10, key="sz_t1_y")
-                        tarih1 = t1_d - (t1_y * 0.25)
-                    with c_n3:
-                        st.markdown("**Tarih-2 (11)**")
-                        t2_d = st.number_input("D", 0, 11, key="t2_d")
-                        t2_y = st.number_input("Y", 0, 11, key="t2_y")
-                        tarih2 = t2_d - (t2_y * 0.25)
-                    with c_n4:
-                        st.markdown("**Coğrafya-1 (6)**")
-                        c1_d = st.number_input("D", 0, 6, key="sz_c1_d")
-                        c1_y = st.number_input("Y", 0, 6, key="sz_c1_y")
-                        cog1 = c1_d - (c1_y * 0.25)
                 else:
                     brans = st.selectbox("Branş Seç", list(CIZELGE_DETAY.keys()))
                     st.markdown("**Netin:**")
                     net_genel = st.number_input("Net", step=0.25, format="%.2f")
 
                 st.markdown("---")
+                st.markdown("<br>", unsafe_allow_html=True)
                 submit_btn = st.form_submit_button("DENEMEYİ KAYDET", use_container_width=True)
                 
                 if submit_btn:
@@ -608,12 +571,6 @@ elif st.session_state.logged_in:
                     elif t_tur == "AYT Sayısal":
                         toplam_net = mat + fizik + kimya + biyo
                         detay_str = f"Mat: {mat} | Fiz: {fizik} | Kim: {kimya} | Biy: {biyo}"
-                    elif t_tur == "AYT Eşit Ağırlık":
-                        toplam_net = mat + edebiyat + tarih1 + cog1
-                        detay_str = f"Mat: {mat} | Edb: {edebiyat} | Tar1: {tarih1} | Coğ1: {cog1}"
-                    elif t_tur == "AYT Sözel":
-                        toplam_net = edebiyat + tarih1 + cog1 + tarih2
-                        detay_str = f"Edb: {edebiyat} | Tar1: {tarih1} | Coğ1: {cog1} | Tar2: {tarih2}"
                     else:
                         toplam_net = net_genel
                         detay_str = f"{brans}: {net_genel}"
@@ -689,6 +646,7 @@ elif st.session_state.logged_in:
         with c_k1:
             st.subheader("🎯 Günlük Hedefin")
             new_target = st.number_input("Bugün kaç dakika çalışacaksın?", value=int(target_val), step=10)
+            st.markdown("<br>", unsafe_allow_html=True)
             if st.button("Hedefi Güncelle"):
                 gd = safe_read_csv(GOALS_DATA, ["username","date","target_min","status"])
                 gd = gd[~((gd['username']==st.session_state.username) & (gd['date']==str(date.today())))]
@@ -700,6 +658,7 @@ elif st.session_state.logged_in:
         with c_k2:
             st.subheader("⏱️ Kronometre")
             t_ders = st.selectbox("Hangi derse çalışıyorsun?", list(CIZELGE_DETAY.keys()), key="timer_lesson")
+            st.markdown("<br>", unsafe_allow_html=True)
             c_btn1, c_btn2, c_btn3 = st.columns(3)
             
             if c_btn1.button("▶️ BAŞLAT"):
@@ -765,27 +724,36 @@ elif st.session_state.logged_in:
             with st.expander("➕ Yeni Kitap Ekle"):
                 bn = st.text_input("Kitap Adı")
                 bc = st.selectbox("Ders", list(CIZELGE_DETAY.keys()), key="new_book_lesson")
+                st.markdown("<br>", unsafe_allow_html=True)
                 if st.button("Kitabı Ekle"):
                     bd = safe_read_csv(BOOKS_DATA, ["username", "book_name", "category", "status"])
                     pd.concat([bd, pd.DataFrame([[target, bn, bc, "Active"]], columns=bd.columns)]).to_csv(BOOKS_DATA, index=False)
                     st.success("Kitap eklendi!")
             st.subheader("📝 Yeni Ödev Ver")
+            
             try: 
-                bd = safe_read_csv(BOOKS_DATA, ["username", "book_name"])
-                bks = bd[bd['username']==target]['book_name'].tolist()
+                bd = safe_read_csv(BOOKS_DATA, ["username", "book_name", "category"])
+                user_bks = bd[bd['username']==target]
+                bks = user_bks['book_name'].tolist()
             except: bks = []
+            
             if bks:
-                c1, c2, c3 = st.columns(3)
+                c1, c2 = st.columns(2)
                 s_kitap = c1.selectbox("Kitap", bks)
-                s_ders = c2.selectbox("Ders", ODEV_DERSLERI, key="assign_task_lesson")
-                s_konu = c3.selectbox("Konu", CIZELGE_DETAY[s_ders])
+                
+                # OTOMATİK DERS SEÇİMİ SİSTEMİ (Redundancy kaldırıldı)
+                secilen_ders = user_bks[user_bks['book_name'] == s_kitap].iloc[0]['category']
+                c2.info(f"📚 Kayıtlı Ders: **{secilen_ders}**")
+                
+                s_konu = st.selectbox("Konu", CIZELGE_DETAY.get(secilen_ders, ["Genel"]))
                 s_detay = st.text_input("Detay (Test No / Sayfa)")
+                st.markdown("<br>", unsafe_allow_html=True)
                 if st.button("ÖDEVİ GÖNDER", use_container_width=True):
                     td = safe_read_csv(TASKS_DATA, ["id", "username", "book", "ders", "konu", "gorev", "durum", "tarih"])
-                    new_task = pd.DataFrame([[int(time.time()), target, s_kitap, s_ders, s_konu, s_detay, "Yapılmadı", str(date.today())]], columns=td.columns)
+                    new_task = pd.DataFrame([[int(time.time()), target, s_kitap, secilen_ders, s_konu, s_detay, "Yapılmadı", str(date.today())]], columns=td.columns)
                     pd.concat([td, new_task], ignore_index=True).to_csv(TASKS_DATA, index=False)
                     st.success("Ödev gönderildi!")
-            else: st.warning("Önce kitap eklemelisin.")
+            else: st.warning("Önce öğrenciye bir kitap eklemelisin.")
         else: st.warning("Hiç koçluk öğrencisi yok veya filtre hatası. 'Öğrenci Listesi'nden yetki ver.")
         st.markdown("<br><br><br>", unsafe_allow_html=True)
 
@@ -822,6 +790,7 @@ elif st.session_state.logged_in:
             d = st.selectbox("Ders", FLASHCARD_DERSLER)
             q = st.text_input("Soru (Ön Yüz)")
             a = st.text_input("Cevap (Arka Yüz)")
+            st.markdown("<br>", unsafe_allow_html=True)
             if st.button("Kartı Ekle"):
                 fd = safe_read_csv(SMART_FLASHCARD_DATA, ["username", "ders", "soru", "cevap", "tarih"])
                 pd.concat([fd, pd.DataFrame([[st.session_state.username,d,q,a,str(date.today())]], columns=fd.columns)]).to_csv(SMART_FLASHCARD_DATA, index=False)
@@ -924,7 +893,7 @@ elif st.session_state.logged_in:
     
     elif st.session_state.page == 'admin_books':
         st.header("Öğrenci Kitapları")
-        try: st.dataframe(safe_read_csv(BOOKS_DATA, ["username", "book_name"]))
+        try: st.dataframe(safe_read_csv(BOOKS_DATA, ["username", "book_name", "category"]))
         except: st.write("Kitap yok")
         st.markdown("<br><br><br>", unsafe_allow_html=True)
 

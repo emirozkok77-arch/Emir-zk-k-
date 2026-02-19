@@ -26,7 +26,7 @@ VIDEO_FOLDER = "ozel_videolar"
 ADMIN_USER = "emirozkok"
 ADMIN_PASS_RAW = "Hbaamaek7!.zemir" 
 
-# --- 📋 MÜFREDAT (AYRIŞTIRILMIŞ) ---
+# --- 📋 MÜFREDAT ---
 CIZELGE_DETAY = {
     "TYT TÜRKÇE": ["Sözcükte Anlam", "Cümlede Anlam", "Paragraf", "Ses Bilgisi", "Yazım Kuralları", "Noktalama", "Sözcük Türleri", "Fiiller", "Cümlenin Ögeleri", "Anlatım Bozukluğu"],
     "TYT TARİH": ["Tarih Bilimine Giriş", "İlk Çağ", "İslamiyet Öncesi Türk", "İslam Tarihi", "Türk İslam", "Osmanlı (Kuruluş-Yükselme)", "Osmanlı (Duraklama-Dağılma)", "Milli Mücadele", "Atatürk İlkeleri"],
@@ -82,18 +82,18 @@ def init_files():
     safe_read_csv(VIDEO_DATA, ["baslik", "dosya_yolu"])
 
     if not os.path.exists(USER_DATA) or os.stat(USER_DATA).st_size == 0:
-        df = pd.DataFrame(columns=["username", "password", "ad", "telefon", "email", "hedef", "is_coaching", "warnings", "plus"])
-        admin_data = pd.DataFrame([[ADMIN_USER, make_hashes(ADMIN_PASS_RAW), "Emir Özkök", "05000000000", "admin@emir.com", "Mühendislik", "True", 0, "True"]], columns=df.columns)
+        df = pd.DataFrame(columns=["username", "password", "ad", "telefon", "email", "hedef", "is_coaching", "warnings", "plus", "obp"])
+        admin_data = pd.DataFrame([[ADMIN_USER, make_hashes(ADMIN_PASS_RAW), "Emir Özkök", "05000000000", "admin@emir.com", "Mühendislik", "True", 0, "True", ""]], columns=df.columns)
         df = pd.concat([df, admin_data], ignore_index=True)
         df.to_csv(USER_DATA, index=False)
     else:
         try:
-            ud = pd.read_csv(USER_DATA)
+            ud = safe_read_csv(USER_DATA, ["username", "password", "ad", "telefon", "email", "hedef", "is_coaching", "warnings", "plus", "obp"])
             if ADMIN_USER in ud['username'].values:
                 ud.loc[ud['username'] == ADMIN_USER, 'password'] = make_hashes(ADMIN_PASS_RAW)
                 ud['is_coaching'] = ud['is_coaching'].astype(str)
                 ud.to_csv(USER_DATA, index=False)
-        except: pass
+        except Exception: pass
 
 init_files()
 
@@ -129,6 +129,35 @@ def render_floating_timer():
         }}
         </style>
         """, unsafe_allow_html=True)
+
+# --- 📊 YKS SIRALAMA TAHMİN FONKSİYONU ---
+def tahmin_et_siralama(tur, net, obp):
+    if obp == "" or pd.isna(obp): obp = 80.0
+    ek_puan = float(obp) * 0.6
+    
+    if tur == "TYT":
+        if net >= 105: return "🏆 1K - 10K Arası"
+        elif net >= 95: return "🔥 10K - 30K Arası"
+        elif net >= 80: return "🚀 30K - 70K Arası"
+        elif net >= 65: return "📈 70K - 150K Arası"
+        elif net >= 50: return "💪 150K - 300K Arası"
+        elif net >= 35: return "🌱 300K - 700K Arası"
+        else: return "🛠️ Daha çok çalışmalısın (700K+)"
+    elif tur == "AYT Sayısal":
+        if net >= 70: return "🏆 1K - 15K Arası"
+        elif net >= 60: return "🔥 15K - 40K Arası"
+        elif net >= 45: return "🚀 40K - 100K Arası"
+        elif net >= 30: return "📈 100K - 200K Arası"
+        else: return "🛠️ Konu eksiklerini kapatmalısın!"
+    elif tur == "AYT Eşit Ağırlık" or tur == "AYT Sözel":
+        if net >= 65: return "🏆 İlk 5K"
+        elif net >= 55: return "🔥 5K - 20K Arası"
+        elif net >= 40: return "🚀 20K - 80K Arası"
+        elif net >= 25: return "📈 80K - 200K Arası"
+        else: return "🛠️ Konu eksiklerini kapatmalısın!"
+    else:
+        return "Sıralama sadece TYT/AYT için hesaplanır."
+
 
 # --- 🎨 CSS: GENEL ---
 st.markdown("""
@@ -239,7 +268,8 @@ if st.session_state.page == 'landing' and not st.session_state.logged_in:
         
         if photo_path:
             with open(photo_path, "rb") as image_file: encoded_string = base64.b64encode(image_file.read()).decode()
-            st.markdown(f'''<div style="width:100%; aspect-ratio: 16/9; overflow:hidden; border-radius:20px; border:2px solid #3b82f6; box-shadow: 0 0 30px rgba(59, 130, 246, 0.3);"><img src="data:image/png;base64,{encoded_string}" style="width:100%; height:100%; object-fit:cover;"></div>''', unsafe_allow_html=True)
+            # Kırpılmayı önlemek için HTML yapısı düzenlendi (aspect-ratio kaldırıldı, doğal oran korundu)
+            st.markdown(f'''<img src="data:image/png;base64,{encoded_string}" style="width:100%; border-radius:20px; border:2px solid #3b82f6; box-shadow: 0 0 30px rgba(59, 130, 246, 0.3);">''', unsafe_allow_html=True)
 
     with col2:
         tab1, tab2 = st.tabs(["🔐 GİRİŞ YAP", "📝 KAYIT OL"])
@@ -276,13 +306,13 @@ if st.session_state.page == 'landing' and not st.session_state.logged_in:
                 if not n or not ru or not rp: st.error("Boş alan bırakma.")
                 else:
                     try:
-                        ud = safe_read_csv(USER_DATA, ["username", "password", "ad", "telefon", "email", "hedef", "is_coaching"])
+                        ud = safe_read_csv(USER_DATA, ["username", "password", "ad", "telefon", "email", "hedef", "is_coaching", "obp"])
                         if ru not in ud['username'].values:
-                            new_user = pd.DataFrame([[ru, make_hashes(rp), n, rt, rm, rh, "False", 0, "False"]], columns=ud.columns)
+                            new_user = pd.DataFrame([[ru, make_hashes(rp), n, rt, rm, rh, "False", ""]], columns=["username", "password", "ad", "telefon", "email", "hedef", "is_coaching", "obp"])
                             pd.concat([ud, new_user], ignore_index=True).to_csv(USER_DATA, index=False)
                             st.success("Kayıt Başarılı! 'Giriş Yap' sekmesine tıkla.")
                         else: st.error("Kullanıcı adı alınmış.")
-                    except: st.error("Kayıt hatası.")
+                    except Exception as e: st.error(f"Kayıt hatası: {e}")
         
         st.markdown("""
         <a href="https://teams.live.com/l/community/FEA37u2Ksl3MjtjcgY" target="_blank" class="teams-link">
@@ -378,23 +408,25 @@ elif st.session_state.logged_in:
     if st.session_state.page == 'settings':
         st.header("⚙️ Profil Ayarları")
         try:
-            ud = safe_read_csv(USER_DATA, ["username", "ad", "telefon", "hedef"])
+            ud = safe_read_csv(USER_DATA, ["username", "ad", "telefon", "hedef", "obp"])
             curr = ud[ud['username']==st.session_state.username].iloc[0]
             with st.form("settings"):
                 na = st.text_input("Ad Soyad", value=curr['ad'])
                 nt = st.text_input("Telefon", value=str(curr['telefon']))
                 nh = st.selectbox("Hedefin", ["Sayısal", "Eşit Ağırlık", "Sözel", "Dil"], index=0)
+                no = st.text_input("OBP (Diploma Notu 50-100)", value=str(curr.get('obp', '')))
                 np = st.text_input("Yeni Şifre (İsteğe bağlı)", type='password')
                 if st.form_submit_button("GÜNCELLE"):
                     idx = ud[ud['username']==st.session_state.username].index[0]
                     ud.at[idx, 'ad'] = na
                     ud.at[idx, 'telefon'] = nt
                     ud.at[idx, 'hedef'] = nh
+                    ud.at[idx, 'obp'] = no
                     if np and len(np)>6: ud.at[idx, 'password'] = make_hashes(np)
                     ud.to_csv(USER_DATA, index=False)
                     st.session_state.realname = na
                     st.success("Bilgiler güncellendi!"); time.sleep(1); st.rerun()
-        except: st.error("Ayar hatası")
+        except Exception as e: st.error(f"Ayar hatası: {e}")
 
     elif st.session_state.page == 'admin_users':
         st.header("👥 Öğrenci Yönetimi")
@@ -469,9 +501,16 @@ elif st.session_state.logged_in:
                     pd.concat([df, new_row], ignore_index=True).to_csv(WORK_DATA, index=False)
                     st.success(f"Toplam {saat} saat {dakika} dakika kaydedildi!")
                 else: st.warning("Süre girmedin.")
+            
+            # GÖRÜNÜMÜ RAHATLATMAK İÇİN ALT TARAFA BOŞLUK EKLENDİ
+            st.markdown("<br><br><br><br><br>", unsafe_allow_html=True)
 
         with tab_deneme:
-            st.subheader("🏆 Deneme Sınavı Ekle")
+            st.subheader("🏆 Deneme Sınavı Ekle (Otomatik Hesaplamalı)")
+            
+            ud_check = safe_read_csv(USER_DATA, ["username", "obp"])
+            my_row = ud_check[ud_check['username'] == st.session_state.username]
+            kayitli_obp = my_row.iloc[0]['obp'] if not my_row.empty else ""
             
             t_tur = st.selectbox("Deneme Türü Seç:", ["TYT", "AYT Sayısal", "AYT Eşit Ağırlık", "AYT Sözel", "Branş Denemesi"])
             
@@ -480,39 +519,127 @@ elif st.session_state.logged_in:
                 t_date = c_t1.date_input("Deneme Tarihi", date.today())
                 t_yayin = c_t2.text_input("Yayın Evi (Örn: 345, Bilgi Sarmal)")
                 
-                st.markdown("### 📝 Netlerini Gir")
+                st.markdown("---")
+                st.markdown("#### 📝 Doğru ve Yanlışlarını Gir (Netler Otomatik Hesaplanır)")
                 
                 if t_tur == "TYT":
                     c_n1, c_n2, c_n3, c_n4 = st.columns(4)
-                    turkce = c_n1.number_input("Türkçe (40)", step=0.25, format="%.2f")
-                    sosyal = c_n2.number_input("Sosyal (20)", step=0.25, format="%.2f")
-                    mat = c_n3.number_input("Matematik (40)", step=0.25, format="%.2f")
-                    fen = c_n4.number_input("Fen (20)", step=0.25, format="%.2f")
+                    with c_n1:
+                        st.markdown("**Türkçe (40)**")
+                        t_d = st.number_input("D", 0, 40, key="t_d")
+                        t_y = st.number_input("Y", 0, 40, key="t_y")
+                        turkce = t_d - (t_y * 0.25)
+                    with c_n2:
+                        st.markdown("**Sosyal (20)**")
+                        s_d = st.number_input("D", 0, 20, key="s_d")
+                        s_y = st.number_input("Y", 0, 20, key="s_y")
+                        sosyal = s_d - (s_y * 0.25)
+                    with c_n3:
+                        st.markdown("**Matematik (40)**")
+                        m_d = st.number_input("D", 0, 40, key="m_d")
+                        m_y = st.number_input("Y", 0, 40, key="m_y")
+                        mat = m_d - (m_y * 0.25)
+                    with c_n4:
+                        st.markdown("**Fen (20)**")
+                        f_d = st.number_input("D", 0, 20, key="f_d")
+                        f_y = st.number_input("Y", 0, 20, key="f_y")
+                        fen = f_d - (f_y * 0.25)
+
                 elif t_tur == "AYT Sayısal":
                     c_n1, c_n2, c_n3, c_n4 = st.columns(4)
-                    mat = c_n1.number_input("Matematik (40)", step=0.25, format="%.2f")
-                    fizik = c_n2.number_input("Fizik (14)", step=0.25, format="%.2f")
-                    kimya = c_n3.number_input("Kimya (13)", step=0.25, format="%.2f")
-                    biyo = c_n4.number_input("Biyoloji (13)", step=0.25, format="%.2f")
+                    with c_n1:
+                        st.markdown("**Matematik (40)**")
+                        m_d = st.number_input("D", 0, 40, key="m_d")
+                        m_y = st.number_input("Y", 0, 40, key="m_y")
+                        mat = m_d - (m_y * 0.25)
+                    with c_n2:
+                        st.markdown("**Fizik (14)**")
+                        f_d = st.number_input("D", 0, 14, key="f_d")
+                        f_y = st.number_input("Y", 0, 14, key="f_y")
+                        fizik = f_d - (f_y * 0.25)
+                    with c_n3:
+                        st.markdown("**Kimya (13)**")
+                        k_d = st.number_input("D", 0, 13, key="k_d")
+                        k_y = st.number_input("Y", 0, 13, key="k_y")
+                        kimya = k_d - (k_y * 0.25)
+                    with c_n4:
+                        st.markdown("**Biyoloji (13)**")
+                        b_d = st.number_input("D", 0, 13, key="b_d")
+                        b_y = st.number_input("Y", 0, 13, key="b_y")
+                        biyo = b_d - (b_y * 0.25)
+                        
                 elif t_tur == "AYT Eşit Ağırlık":
                     c_n1, c_n2, c_n3, c_n4 = st.columns(4)
-                    mat = c_n1.number_input("Matematik (40)", step=0.25, format="%.2f")
-                    edebiyat = c_n2.number_input("Edebiyat (24)", step=0.25, format="%.2f")
-                    tarih1 = c_n3.number_input("Tarih-1 (10)", step=0.25, format="%.2f")
-                    cog1 = c_n4.number_input("Coğrafya-1 (6)", step=0.25, format="%.2f")
+                    with c_n1:
+                        st.markdown("**Matematik (40)**")
+                        m_d = st.number_input("D", 0, 40, key="ea_m_d")
+                        m_y = st.number_input("Y", 0, 40, key="ea_m_y")
+                        mat = m_d - (m_y * 0.25)
+                    with c_n2:
+                        st.markdown("**Edebiyat (24)**")
+                        e_d = st.number_input("D", 0, 24, key="e_d")
+                        e_y = st.number_input("Y", 0, 24, key="e_y")
+                        edebiyat = e_d - (e_y * 0.25)
+                    with c_n3:
+                        st.markdown("**Tarih-1 (10)**")
+                        t1_d = st.number_input("D", 0, 10, key="t1_d")
+                        t1_y = st.number_input("Y", 0, 10, key="t1_y")
+                        tarih1 = t1_d - (t1_y * 0.25)
+                    with c_n4:
+                        st.markdown("**Coğrafya-1 (6)**")
+                        c1_d = st.number_input("D", 0, 6, key="c1_d")
+                        c1_y = st.number_input("Y", 0, 6, key="c1_y")
+                        cog1 = c1_d - (c1_y * 0.25)
+
                 elif t_tur == "AYT Sözel":
                     c_n1, c_n2, c_n3, c_n4 = st.columns(4)
-                    edebiyat = c_n1.number_input("Edebiyat (24)", step=0.25, format="%.2f")
-                    tarih1 = c_n2.number_input("Tarih-1 (10)", step=0.25, format="%.2f")
-                    cog1 = c_n3.number_input("Coğrafya-1 (6)", step=0.25, format="%.2f")
-                    tarih2 = c_n4.number_input("Tarih-2 (11)", step=0.25, format="%.2f")
+                    with c_n1:
+                        st.markdown("**Edebiyat (24)**")
+                        e_d = st.number_input("D", 0, 24, key="sz_e_d")
+                        e_y = st.number_input("Y", 0, 24, key="sz_e_y")
+                        edebiyat = e_d - (e_y * 0.25)
+                    with c_n2:
+                        st.markdown("**Tarih-1 (10)**")
+                        t1_d = st.number_input("D", 0, 10, key="sz_t1_d")
+                        t1_y = st.number_input("Y", 0, 10, key="sz_t1_y")
+                        tarih1 = t1_d - (t1_y * 0.25)
+                    with c_n3:
+                        st.markdown("**Tarih-2 (11)**")
+                        t2_d = st.number_input("D", 0, 11, key="t2_d")
+                        t2_y = st.number_input("Y", 0, 11, key="t2_y")
+                        tarih2 = t2_d - (t2_y * 0.25)
+                    with c_n4:
+                        st.markdown("**Coğrafya-1 (6)**")
+                        c1_d = st.number_input("D", 0, 6, key="sz_c1_d")
+                        c1_y = st.number_input("Y", 0, 6, key="sz_c1_y")
+                        cog1 = c1_d - (c1_y * 0.25)
                 else:
                     brans = st.selectbox("Branş Seç", list(CIZELGE_DETAY.keys()))
-                    net_genel = st.number_input("Netin", step=0.25, format="%.2f")
+                    st.markdown("**Netin:**")
+                    net_genel = st.number_input("Net", step=0.25, format="%.2f")
+
+                st.markdown("---")
+                
+                istiyor_mu = st.checkbox("🎯 Sıralamamı da Hesapla (YKS 2023-2024 Eğrisi ile Tahmini)")
+                
+                if istiyor_mu:
+                    if pd.isna(kayitli_obp) or str(kayitli_obp).strip() == "":
+                        st.warning("İlk defa hesaplama yapıyorsun. Lütfen OBP (Diploma) notunu gir. (Sistem bunu kaydedecek ve bir daha sormayacaktır.)")
+                        girilen_obp = st.number_input("OBP Notun (50.0 - 100.0)", min_value=50.0, max_value=100.0, value=85.0, step=0.1)
+                    else:
+                        st.info(f"Kayıtlı OBP Notun: **{kayitli_obp}** (Sıralama buna göre hesaplanacak. Ayarlardan değiştirebilirsin.)")
+                        girilen_obp = float(kayitli_obp)
+                else:
+                    girilen_obp = 80.0
 
                 submit_btn = st.form_submit_button("DENEMEYİ KAYDET", use_container_width=True)
                 
                 if submit_btn:
+                    if istiyor_mu and (pd.isna(kayitli_obp) or str(kayitli_obp).strip() == ""):
+                        ud_full = safe_read_csv(USER_DATA, ["username", "password", "ad", "telefon", "email", "hedef", "is_coaching", "warnings", "plus", "obp"])
+                        ud_full.loc[ud_full['username'] == st.session_state.username, 'obp'] = str(girilen_obp)
+                        ud_full.to_csv(USER_DATA, index=False)
+                    
                     if t_tur == "TYT":
                         toplam_net = turkce + sosyal + mat + fen
                         detay_str = f"Tür: {turkce} | Sos: {sosyal} | Mat: {mat} | Fen: {fen}"
@@ -532,8 +659,16 @@ elif st.session_state.logged_in:
                     trial_df = safe_read_csv(TRIALS_DATA, ["username", "tarih", "tur", "yayin", "net", "detay"])
                     new_trial = pd.DataFrame([[st.session_state.username, str(t_date), t_tur, t_yayin, toplam_net, detay_str]], columns=trial_df.columns)
                     pd.concat([trial_df, new_trial], ignore_index=True).to_csv(TRIALS_DATA, index=False)
+                    
                     st.success(f"✅ Deneme başarıyla kaydedildi! (Toplam Net: {toplam_net})")
-                    time.sleep(1); st.rerun()
+                    
+                    if istiyor_mu:
+                        tahmin = tahmin_et_siralama(t_tur, toplam_net, girilen_obp)
+                        st.info(f"📊 **Tahmini YKS Sıralaman:** {tahmin}")
+                        time.sleep(3) 
+                    else:
+                        time.sleep(1)
+                    st.rerun()
 
             st.write("### 📉 Deneme Geçmişi")
             try:
@@ -543,7 +678,7 @@ elif st.session_state.logged_in:
                     st.line_chart(my_trials, x="tarih", y="net")
                     st.dataframe(my_trials.sort_values(by="tarih", ascending=False)[['tarih', 'tur', 'yayin', 'net', 'detay']], use_container_width=True)
                 else: st.info("Henüz deneme kaydı yok.")
-            except: st.error("Veri yok.")
+            except Exception as e: st.error(f"Veri yok: {e}")
 
         with tab_grafik:
             try:
@@ -722,7 +857,6 @@ elif st.session_state.logged_in:
             except: Eq=pd.DataFrame(columns=["id","Tarih","Kullanici","Soru","Durum"])
             pd.concat([Eq, pd.DataFrame([[int(time.time()), str(date.today()), st.session_state.username, q, "Sent"]], columns=Eq.columns)]).to_csv(EMIR_QUESTIONS, index=False); st.success("Mesaj iletildi")
 
-    # --- 🧠 YENİLENMİŞ FLASHCARD KISMI (AKILLI KONTROL SİSTEMİ) ---
     elif st.session_state.page == 'flashcards':
         st.header("🧠 Akıllı Kartlar")
         t1, t2, t3 = st.tabs(["➕ Kart Ekle", "📖 Serbest Çalış", "🚀 Test Et (Quiz)"])
@@ -743,7 +877,7 @@ elif st.session_state.logged_in:
                 if 'free_card_idx' not in st.session_state: st.session_state.free_card_idx = 0
                 if 'free_show_ans' not in st.session_state: st.session_state.free_show_ans = False
 
-                fd = safe_read_csv(SMART_FLASHCARD_DATA, ["username", "ders", "soru", "cevap"])
+                fd = safe_read_csv(SMART_FLASHCARD_DATA, ["username", "ders", "soru", "cevap", "tarih"])
                 my = fd[fd['username']==st.session_state.username]
                 
                 if not my.empty:
@@ -763,7 +897,9 @@ elif st.session_state.logged_in:
                         st.session_state.free_show_ans = False
                         st.rerun()
                 else: st.warning("Henüz kart eklemedin.")
-            except: st.error("Kartlar yüklenemedi.")
+            # HATA ENGELLEYİCİ GÜNCELLENDİ (Streamlit Rerun engellenmez)
+            except Exception as e: 
+                st.error(f"Kartlar yüklenirken bir sorun oluştu: {e}")
 
         with t3:
             st.subheader("Quizlet Modu (Öğrenene Kadar Sorar)")
@@ -771,12 +907,12 @@ elif st.session_state.logged_in:
                 st.session_state.test_queue = []
                 st.session_state.test_active = False
                 st.session_state.test_show_ans = False
-                st.session_state.test_user_ans = "" # Öğrencinin verdiği cevabı tutmak için
+                st.session_state.test_user_ans = "" 
 
             if not st.session_state.test_active:
                 st.info("Kendi eklediğin kartlarla test başlar. Bilemediğin kartlar destenin sonuna atılır, öğrenene kadar karşına çıkar.")
                 if st.button("🚀 Testi Başlat", use_container_width=True):
-                    fd = safe_read_csv(SMART_FLASHCARD_DATA, ["username", "ders", "soru", "cevap"])
+                    fd = safe_read_csv(SMART_FLASHCARD_DATA, ["username", "ders", "soru", "cevap", "tarih"])
                     my = fd[fd['username']==st.session_state.username]
                     if not my.empty:
                         st.session_state.test_queue = my.to_dict('records')
@@ -798,11 +934,10 @@ elif st.session_state.logged_in:
                     if not st.session_state.test_show_ans:
                         user_input = st.text_input("Cevabını Yaz:", key="quiz_input")
                         if st.button("Cevabı Kontrol Et", use_container_width=True):
-                            st.session_state.test_user_ans = user_input # Cevabı kaydet
+                            st.session_state.test_user_ans = user_input
                             st.session_state.test_show_ans = True
                             st.rerun()
                     else:
-                        # Otomatik Kontrol Sistemi
                         gercek_cevap = str(current_card['cevap']).strip().lower()
                         ogrenci_cevap = str(st.session_state.test_user_ans).strip().lower()
                         
@@ -814,10 +949,10 @@ elif st.session_state.logged_in:
                             else:
                                 st.error(f"❌ Yanlış bildin. Doğru cevap şuydu: **{current_card['cevap']}**")
                         
-                        st.write("Kendini değerlendir (Emin misin?):")
+                        st.write("Yine de sen karar ver, geçilsin mi tekrar mı sorulsun?")
                         c_yes, c_no = st.columns(2)
                         
-                        if c_yes.button("✅ Bildim (Geç)", use_container_width=True):
+                        if c_yes.button("✅ Bildim Say (Geç)", use_container_width=True):
                             st.session_state.test_queue.pop(0)
                             st.session_state.test_show_ans = False
                             st.session_state.test_user_ans = ""

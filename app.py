@@ -123,7 +123,7 @@ CIZELGE_DETAY = {
     ]
 }
 
-# --- 📚 KİTAP ÖNERİ SİSTEMİ (LİSTEDEN ÇEKİLDİ) ---
+# --- 📚 KİTAP ÖNERİ SİSTEMİ ---
 KITAP_ONERILERI = {
     "TYT TÜRKÇE": [
         "Hız ve Renk (Kolay)", "Aydınetap Paragraf (Kolay)", 
@@ -909,7 +909,7 @@ elif st.session_state.logged_in:
                 
         st.markdown("<br><br><br><br><br>", unsafe_allow_html=True)
 
-    # --- 🎯 AKILLI ÖDEV ATAMA & ANALİZ SİSTEMİ (V4900) ---
+    # --- 🎯 AKILLI ÖDEV ATAMA & ANALİZ SİSTEMİ (V5000) ---
     elif st.session_state.page == 'admin_cizelge':
         st.header("👑 Koçluk Komuta Merkezi")
         users = safe_read_csv(USER_DATA, ["username", "is_coaching"])
@@ -961,6 +961,12 @@ elif st.session_state.logged_in:
             m3.metric("Ödev Sadakati (Genel)", f"%{int(sadakat)}")
             m4.metric("Aktif Bekleyen Ödev", bekleyen_sayisi)
             
+            # Seçilen Dönemde Ders Bazlı Bar Chart
+            if not recent_work.empty:
+                ders_bazli = recent_work.groupby('Ders')[['Soru']].sum().reset_index()
+                st.markdown(f"##### 📌 {zaman_filtresi} İçindeki Ders Dağılımı (Çözülen Soru)")
+                st.bar_chart(ders_bazli.set_index('Ders')['Soru'])
+            
             # --- DARBOĞAZ VE ALARMLAR ---
             st.markdown("<br>", unsafe_allow_html=True)
             if bekleyen_sayisi >= 5:
@@ -970,29 +976,30 @@ elif st.session_state.logged_in:
                 
             st.markdown("---")
             
-            # --- 2. ÖĞRENCİNİN GÜNLÜK SORU/SÜRE DÖKÜMÜ ---
-            st.markdown("### 🗓️ Günlük Soru ve Süre Dökümü (Detaylı)")
-            if not user_work.empty:
-                unique_dates = user_work['Tarih'].dropna().unique()
-                unique_dates = sorted(unique_dates, reverse=True)
+            # --- 2. NOKTA ATIŞI GÜNLÜK ANALİZ (TAKVİMLİ) ---
+            st.markdown("### 🗓️ Nokta Atışı Günlük Analiz (Tarih Seçmeli)")
+            secilen_gun = st.date_input("📅 İncelemek İstediğiniz Günü Seçin", date.today())
+            
+            gun_data = user_work[user_work['Tarih'] == str(secilen_gun)].copy()
+            
+            if not gun_data.empty:
+                gun_data['Soru'] = pd.to_numeric(gun_data['Soru'], errors='coerce').fillna(0)
+                gun_data['Süre'] = pd.to_numeric(gun_data['Süre'], errors='coerce').fillna(0)
                 
-                for d in unique_dates:
-                    day_data = user_work[user_work['Tarih'] == d].copy()
-                    day_data['Soru'] = pd.to_numeric(day_data['Soru'], errors='coerce').fillna(0)
-                    day_data['Süre'] = pd.to_numeric(day_data['Süre'], errors='coerce').fillna(0)
-                    
-                    toplam_soru = int(day_data['Soru'].sum())
-                    toplam_sure = int(day_data['Süre'].sum())
-                    
-                    saat = toplam_sure // 60
-                    dakika = toplam_sure % 60
-                    sure_metni = f"{saat} Sa {dakika} Dk" if toplam_sure > 0 else "Süre girilmedi"
-                    
-                    with st.expander(f"📅 {d} | Toplam: {toplam_soru} Soru | ⏱️ {sure_metni}"):
-                        display_df = day_data[['Ders', 'Soru', 'Süre']].copy()
-                        st.dataframe(display_df, use_container_width=True, hide_index=True)
+                toplam_s = int(gun_data['Soru'].sum())
+                toplam_dk = int(gun_data['Süre'].sum())
+                
+                c_g1, c_g2 = st.columns(2)
+                c_g1.success(f"**Toplam Çözülen Soru:** {toplam_s}")
+                c_g2.info(f"**Toplam Çalışma Süresi:** {toplam_dk // 60} Saat {toplam_dk % 60} Dakika")
+                
+                st.markdown("##### 📌 O Gün Çalışılan Dersler ve Detaylar")
+                ders_gunluk = gun_data.groupby('Ders')[['Soru', 'Süre']].sum().reset_index()
+                # Kolon isimlerini şıklaştır
+                ders_gunluk.rename(columns={'Soru': 'Çözülen Soru', 'Süre': 'Süre (Dakika)'}, inplace=True)
+                st.dataframe(ders_gunluk, use_container_width=True, hide_index=True)
             else:
-                st.info("Öğrencinin henüz günlük çalışma (soru/süre) kaydı bulunmuyor.")
+                st.warning(f"Öğrencinin {secilen_gun} tarihinde kayıtlı bir çalışması (Soru/Süre) bulunmuyor.")
                 
             st.markdown("---")
             

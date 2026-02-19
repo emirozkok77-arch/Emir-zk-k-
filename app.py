@@ -135,7 +135,6 @@ def tahmin_et_siralama(tur, net, obp):
     if obp == "" or pd.isna(obp): obp = 80.0
     obp = float(obp)
     
-    # Doğrudan nokta atışı bir sıralama üretmek için matematiksel model:
     siralama = 3000000 
     
     if tur == "TYT":
@@ -160,16 +159,13 @@ def tahmin_et_siralama(tur, net, obp):
     else:
         return "Sıralama sadece TYT/AYT için hesaplanır."
 
-    # OBP'nin Sıralamaya Etkisi (OBP 80'i baz alır)
     obp_farki = (obp - 80) * 1000
     siralama = siralama - obp_farki
     
-    # 1.likten daha iyi olamaz (Küçük bir rastgelelik katmak için netin hash'i kullanılır)
     if siralama < 1: 
         siralama = abs(int(hashlib.md5(str(net).encode()).hexdigest(), 16)) % 100 + 1
         
     return f"{int(siralama):,}".replace(",", ".")
-
 
 # --- 🎨 CSS: GENEL ---
 st.markdown("""
@@ -177,7 +173,6 @@ st.markdown("""
     .stApp { background-color: #02040a; color: #e2e8f0; font-family: 'Inter', sans-serif; }
     header, footer, #MainMenu, .stDeployButton, div[class^='viewerBadge'] {display: none !important;}
     
-    /* ALT TARAFTA BOŞLUK (Sayfa sonuna yapışmaması için) */
     .block-container { padding-top: 1rem !important; padding-bottom: 150px !important; }
 
     .dashboard-card {
@@ -208,10 +203,9 @@ st.markdown("""
         background-color: #3b82f6; border-color: #3b82f6;
     }
 
-    /* YENİ TOPLULUK BUTONU TASARIMI */
     .teams-link {
         display: block; width: 100%; padding: 15px;
-        background: linear-gradient(90deg, #10b981, #059669); /* Yeşil ton - dikkat çekici */
+        background: linear-gradient(90deg, #10b981, #059669); 
         color: white !important; text-align: center; border-radius: 12px;
         text-decoration: none; font-weight: bold; font-size: 18px;
         box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4); transition: 0.3s;
@@ -332,13 +326,12 @@ if st.session_state.page == 'landing' and not st.session_state.logged_in:
                         else: st.error("Kullanıcı adı alınmış.")
                     except Exception as e: st.error(f"Kayıt hatası: {e}")
         
-        # --- YENİ TOPLULUK BUTONU TASARIMI ---
+        # --- YENİ METİNLİ TOPLULUK BUTONU ---
         st.markdown("""
         <div style="text-align: center; margin-top: 40px; padding: 20px; background: rgba(16, 185, 129, 0.1); border-radius: 15px; border: 1px dashed rgba(16, 185, 129, 0.4);">
-            <p style="color: #cbd5e1; font-size: 15px; margin-bottom: 10px;">Sadece topluluğa katılmak için 👇 (Giriş yapmana gerek yok)</p>
+            <p style="color: #cbd5e1; font-size: 15px; margin-bottom: 10px; font-weight: 500;">Aynı zamanda hazır çalışma programları, grup rehber etkinlikleri ve derece yaptıran taktikler için topluluğa da katıl 👇</p>
             <a href="https://teams.live.com/l/community/FEA37u2Ksl3MjtjcgY" target="_blank" class="teams-link">
-                🔥 EMİR ÖZKÖK TOPLULUĞU (+50 ÜYE) <br>
-                <span style="font-size: 13px; font-weight: 500;">Bedava hazır programlar ve taktikler için hemen katıl!</span>
+                🔥 EMİR ÖZKÖK TOPLULUĞU (+50 ÜYE)
             </a>
         </div>
         """, unsafe_allow_html=True)
@@ -691,7 +684,7 @@ elif st.session_state.logged_in:
                     if istiyor_mu:
                         tahmin = tahmin_et_siralama(t_tur, toplam_net, girilen_obp)
                         st.info(f"📊 **Tahmini YKS Sıralaman:** {tahmin}")
-                        time.sleep(5) # Öğrenci sıralamasını görsün diye biraz uzun bekle
+                        time.sleep(5) 
                     else:
                         time.sleep(1)
                     st.rerun()
@@ -934,7 +927,7 @@ elif st.session_state.logged_in:
                         st.rerun()
                 else: st.warning("Henüz kart eklemedin.")
             except Exception as e: 
-                st.error(f"Lütfen ilk kartınızı ekleyin.")
+                st.error("Lütfen ilk kartınızı ekleyin.")
 
         with t3:
             st.subheader("Quizlet Modu (Öğrenene Kadar Sorar)")

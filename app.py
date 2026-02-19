@@ -909,7 +909,7 @@ elif st.session_state.logged_in:
                 
         st.markdown("<br><br><br><br><br>", unsafe_allow_html=True)
 
-    # --- 🎯 AKILLI ÖDEV ATAMA & ANALİZ SİSTEMİ (V4600) ---
+    # --- 🎯 AKILLI ÖDEV ATAMA & ANALİZ SİSTEMİ (V4900) ---
     elif st.session_state.page == 'admin_cizelge':
         st.header("👑 Koçluk Komuta Merkezi")
         users = safe_read_csv(USER_DATA, ["username", "is_coaching"])
@@ -919,7 +919,7 @@ elif st.session_state.logged_in:
             target = st.selectbox("🎯 Analiz Edilecek Öğrenciyi Seç", st_list)
             st.markdown("---")
             
-            # --- 1. GEÇMİŞ VE İSTATİSTİKLER ---
+            # --- VERİ ÇEKME ---
             td = safe_read_csv(TASKS_DATA, ["id", "username", "book", "ders", "konu", "gorev", "durum", "tarih"])
             wd = safe_read_csv(WORK_DATA, ["username", "Tarih", "Ders", "Konu", "Soru", "Süre"])
             user_tasks = td[td['username'] == target].copy()
@@ -928,17 +928,26 @@ elif st.session_state.logged_in:
             user_tasks['tarih_dt'] = pd.to_datetime(user_tasks['tarih'], errors='coerce')
             user_work['Tarih_dt'] = pd.to_datetime(user_work['Tarih'], errors='coerce')
             
-            yedi_gun_once = pd.Timestamp(date.today() - timedelta(days=7))
+            # --- 1. EFOR KARNESİ (ZAMAN FİLTRELİ) ---
+            st.markdown("### 📊 Öğrenci Efor ve Performans Karnesi")
+            zaman_filtresi = st.selectbox("Zaman Aralığı Seç", ["Son 7 Gün", "Son 15 Gün", "Son 1 Ay", "Tüm Zamanlar"])
             
-            # --- 1. EFOR KARNESİ (SON 7 GÜN) ---
-            st.markdown("### 📊 Son 7 Günün Efor Karnesi")
-            recent_work = user_work[user_work['Tarih_dt'] >= yedi_gun_once].copy()
-            
+            bugun = pd.Timestamp(date.today())
+            if zaman_filtresi == "Son 7 Gün":
+                baslangic_tarihi = bugun - timedelta(days=7)
+            elif zaman_filtresi == "Son 15 Gün":
+                baslangic_tarihi = bugun - timedelta(days=15)
+            elif zaman_filtresi == "Son 1 Ay":
+                baslangic_tarihi = bugun - timedelta(days=30)
+            else:
+                baslangic_tarihi = pd.Timestamp("2000-01-01") # Tüm zamanlar
+                
+            recent_work = user_work[user_work['Tarih_dt'] >= baslangic_tarihi].copy()
             recent_work['Soru'] = pd.to_numeric(recent_work['Soru'], errors='coerce').fillna(0)
             recent_work['Süre'] = pd.to_numeric(recent_work['Süre'], errors='coerce').fillna(0)
             
-            last_7_q = recent_work['Soru'].sum()
-            last_7_time = recent_work['Süre'].sum()
+            period_q = recent_work['Soru'].sum()
+            period_time = recent_work['Süre'].sum()
             
             total_t = len(user_tasks)
             done_t = len(user_tasks[user_tasks['durum'] == 'Tamamlandı'])
@@ -947,8 +956,8 @@ elif st.session_state.logged_in:
             bekleyen_sayisi = len(user_tasks[user_tasks['durum'] == 'Yapılmadı'])
             
             m1, m2, m3, m4 = st.columns(4)
-            m1.metric("Son 7 Gün Çözülen Soru", int(last_7_q))
-            m2.metric("Son 7 Gün Çalışma Süresi", f"{int(last_7_time//60)}s {int(last_7_time%60)}dk")
+            m1.metric(f"Çözülen Soru ({zaman_filtresi})", int(period_q))
+            m2.metric(f"Çalışma Süresi ({zaman_filtresi})", f"{int(period_time//60)}s {int(period_time%60)}dk")
             m3.metric("Ödev Sadakati (Genel)", f"%{int(sadakat)}")
             m4.metric("Aktif Bekleyen Ödev", bekleyen_sayisi)
             
@@ -961,7 +970,7 @@ elif st.session_state.logged_in:
                 
             st.markdown("---")
             
-            # --- 2.5 ÖĞRENCİNİN GÜNLÜK SORU/SÜRE DÖKÜMÜ ---
+            # --- 2. ÖĞRENCİNİN GÜNLÜK SORU/SÜRE DÖKÜMÜ ---
             st.markdown("### 🗓️ Günlük Soru ve Süre Dökümü (Detaylı)")
             if not user_work.empty:
                 unique_dates = user_work['Tarih'].dropna().unique()
@@ -987,18 +996,18 @@ elif st.session_state.logged_in:
                 
             st.markdown("---")
             
-            # --- 3. GEÇEN HAFTANIN RÖNTGENİ ---
-            st.markdown("### 🗓️ Geçen Görüşmeden Bugüne (Son 7 Günlük Ödevler)")
-            recent_tasks = user_tasks[user_tasks['tarih_dt'] >= yedi_gun_once]
+            # --- 3. SEÇİLEN ZAMAN ARALIĞI RÖNTGENİ ---
+            st.markdown(f"### 🗓️ Verilen Ödevler ({zaman_filtresi})")
+            recent_tasks = user_tasks[user_tasks['tarih_dt'] >= baslangic_tarihi]
             if not recent_tasks.empty:
                 display_rt = recent_tasks[['tarih', 'ders', 'konu', 'book', 'durum']].sort_values(by="tarih", ascending=False)
                 st.dataframe(display_rt, use_container_width=True, hide_index=True)
             else:
-                st.info("Son 7 gün içinde verilmiş bir ödev kaydı bulunmuyor.")
+                st.info(f"{zaman_filtresi} içinde verilmiş bir ödev kaydı bulunmuyor.")
 
             st.markdown("---")
             
-            # --- 2. BİTİRİLEN KİTAPLAR MÜZESİ ---
+            # --- 4. BİTİRİLEN KİTAPLAR MÜZESİ ---
             bd_all = safe_read_csv(BOOKS_DATA, ["username", "book_name", "category", "status"])
             
             if 'status' not in bd_all.columns: bd_all['status'] = "Active"
@@ -1013,7 +1022,7 @@ elif st.session_state.logged_in:
                         
             st.markdown("<br>", unsafe_allow_html=True)
 
-            # --- 3. AKILLI YENİ KİTAP EKLEME (ÖNERİ SİSTEMLİ VE GİZLİ ZORLUKLU) ---
+            # --- 5. AKILLI YENİ KİTAP EKLEME (ÖNERİ SİSTEMLİ VE GİZLİ ZORLUKLU) ---
             st.markdown("### 📚 Sisteme Yeni Kitap Ekle")
             with st.expander("➕ Yeni Kitap Tanımla (Önerileri Görmek İçin Tıklayın)"):
                 bc = st.selectbox("Ders Seç", list(CIZELGE_DETAY.keys()), key="new_book_lesson")
@@ -1041,7 +1050,7 @@ elif st.session_state.logged_in:
 
             st.markdown("---")
 
-            # --- 4. ÖDEV VERME (ÖNCE DERS SONRA KİTAP) ---
+            # --- 6. ÖDEV VERME (ÖNCE DERS SONRA KİTAP) ---
             st.markdown("### 🎯 Akıllı Ödev Atama Motoru")
             
             active_books = bd_all[(bd_all['username'] == target) & (bd_all['status'] == 'Active')]
@@ -1111,13 +1120,6 @@ elif st.session_state.logged_in:
                         time.sleep(1); st.rerun()
             else: 
                 st.warning("Bu öğrenciye atanmış AKTİF bir kitap yok. Önce üstteki menüden yeni bir kitap ekleyin.")
-            
-            st.write("---")
-            st.write(f"### 📋 {target} - Tüm Ödev Geçmişi")
-            try:
-                display_past = user_tasks[['tarih', 'ders', 'konu', 'gorev', 'durum', 'book']].sort_values(by="tarih", ascending=False)
-                st.dataframe(display_past, use_container_width=True)
-            except: st.write("Henüz ödev kaydı yok.")
             
         else: st.warning("Sistemde kayıtlı koçluk öğrencisi bulunamadı.")
         

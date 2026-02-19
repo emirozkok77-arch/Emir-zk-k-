@@ -6,6 +6,7 @@ from datetime import datetime, date
 import time
 import base64
 import glob
+import random
 
 # --- SAYFA AYARLARI ---
 st.set_page_config(page_title="Emir Özkök Akademi", layout="wide", page_icon="🧿", initial_sidebar_state="collapsed")
@@ -17,34 +18,111 @@ VIDEO_DATA = "videolar.csv"
 TASKS_DATA = "odevler.csv"
 BOOKS_DATA = "ogrenci_kitaplari.csv"
 GOALS_DATA = "hedefler.csv"
-EMIR_QUESTIONS = "emire_gelen_sorular.csv"
 SMART_FLASHCARD_DATA = "akilli_kartlar.csv"
 TRIALS_DATA = "denemeler.csv"
 VIDEO_FOLDER = "ozel_videolar"
+FLASHCARD_IMG_FOLDER = "flashcard_images"
 
 # --- YÖNETİCİ BİLGİLERİ ---
 ADMIN_USER = "emirozkok"
 ADMIN_PASS_RAW = "Hbaamaek7!.zemir" 
 
-# --- 📋 MÜFREDAT (SADECE TYT VE AYT SAYISAL) ---
+# --- 📋 MÜFREDAT (EXCEL BİREBİR AKTARILDI - TYT VE AYT SAYISAL) ---
 CIZELGE_DETAY = {
-    "TYT TÜRKÇE": ["Sözcükte Anlam", "Cümlede Anlam", "Paragraf", "Ses Bilgisi", "Yazım Kuralları", "Noktalama", "Sözcük Türleri", "Fiiller", "Cümlenin Ögeleri", "Anlatım Bozukluğu"],
-    "TYT TARİH": ["Tarih Bilimine Giriş", "İlk Çağ", "İslamiyet Öncesi Türk", "İslam Tarihi", "Türk İslam", "Osmanlı (Kuruluş-Yükselme)", "Osmanlı (Duraklama-Dağılma)", "Milli Mücadele", "Atatürk İlkeleri"],
-    "TYT COĞRAFYA": ["Doğa ve İnsan", "Dünya'nın Şekli", "Coğrafi Konum", "Harita", "İklim", "Yer Şekilleri", "Nüfus", "Ulaşım", "Ekonomik Faaliyetler", "Afetler"],
-    "TYT FELSEFE": ["Felsefeye Giriş", "Bilgi", "Varlık", "Ahlak", "Sanat", "Din", "Siyaset", "Bilim"],
-    "TYT DİN": ["Bilgi ve İnanç", "Din ve İslam", "İslam ve İbadet", "Hz. Muhammed", "Vahiy ve Akıl"],
-    "TYT MATEMATİK": ["Temel Kavramlar", "Sayı Basamakları", "Bölme-Bölünebilme", "EBOB-EKOK", "Rasyonel", "Eşitsizlikler", "Mutlak Değer", "Üslü-Köklü", "Çarpanlara Ayırma", "Oran-Orantı", "Problemler", "Mantık", "Kümeler", "Fonksiyonlar", "Polinomlar", "PKOB"],
-    "TYT FİZİK": ["Fizik Bilimi", "Madde ve Özellikleri", "Hareket", "İş-Güç-Enerji", "Isı-Sıcaklık", "Elektrostatik", "Elektrik", "Optik", "Basınç", "Dalgalar"],
-    "TYT KİMYA": ["Kimya Bilimi", "Atom", "Türler Arası Etkileşim", "Madden Halleri", "Asit-Baz-Tuz", "Karışımlar", "Kimya Her Yerde"],
-    "TYT BİYOLOJİ": ["Canlıların Ortak Öz.", "Temel Bileşenler", "Hücre", "Sınıflandırma", "Bölünmeler", "Kalıtım", "Ekoloji"],
-    "GEOMETRİ": ["Üçgenler", "Çokgenler", "Dörtgenler", "Çember-Daire", "Katı Cisimler", "Analitik", "Dönüşüm"],
-    "AYT MATEMATİK": ["Fonksiyonlar-2", "Polinomlar-2", "2. Dereceden Denklem", "Parabol", "Eşitsizlikler", "Trigonometri", "Logaritma", "Diziler", "Limit", "Türev", "İntegral"],
-    "AYT FİZİK": ["Vektör", "Bağıl Hareket", "Newton", "Atışlar", "İtme-Momentum", "Tork-Denge", "Elektrik-Manyetizma", "Çembersel Hareket", "Harmonik Hareket", "Dalga Mekaniği", "Modern Fizik"],
-    "AYT KİMYA": ["Modern Atom", "Gazlar", "Sıvı Çözeltiler", "Enerji", "Hız", "Denge", "Asit-Baz Dengesi", "KÇÇ", "Elektrik", "Organik"],
-    "AYT BİYOLOJİ": ["Sistemler", "Komünite", "Genden Proteine", "Canlılık ve Enerji", "Bitki Biyolojisi"]
+    "TYT TÜRKÇE": [
+        "Ses Bilgisi", "Yazım Kuralları", "Noktalama İşaretleri", "Sözcükte Anlam",
+        "Cümlede Anlam", "Paragraf Anlam", "İsim Sıfat Zamir", "Tamlamalar", "Zarf",
+        "Edat-Bağlaç-Ünlem", "Fiil Çekimi", "Fiilde Çatı", "Fiilimsi", "Ek Fiil",
+        "Sözcük Yapısı", "Cümlenin Ögeleri Türleri", "Anlatım Bozuklukları"
+    ],
+    "TYT MATEMATİK": [
+        "Sayı Kümeleri", "Sayı Basamakları", "Asal Sayılar-Faktöriyel", "Bölme-Bölünebilme",
+        "Ebob-Ekok (Ortak Bölen ve Katlar)", "Tekrar Eden Durum Problemler", "Rasyonel Sayılar",
+        "Birinci Dereceden Bir Bilinmeyenli Denklemler", "Denklem Sistemleri", "Basit Eşitsizlikler",
+        "Mutlak Değer", "Üslü Sayılar", "Köklü Sayılar", "Oran-Orantı-Problemleri",
+        "Sayı - Kesir Problemleri", "Yaş Problemleri", "Yüzde-Kar-Zarar Problemleri",
+        "Karışım Problemleri", "İşçi Problemleri", "Hareket Problemleri", "Grafik Problemleri",
+        "Sayısal Yetenek Problemleri", "Kümeler", "Mantık", "Polinom", "Permütasyon",
+        "Kombinasyon", "Olasılık", "Çarpanlara Ayırma", "Fonksiyonlar"
+    ],
+    "AYT MATEMATİK": [
+        "Fonksiyonlar Giriş", "Fonksiyon Türleri", "Ters Fonksiyon", "Fonksiyon Grafikleri",
+        "Fonksiyonlarda Simetri Öteleme", "Logaritma", "Diziler (Aritmetik-Geometrik)",
+        "Trigonometri-1", "Trigonometri-2", "Çarpanlara Ayırma", "Polinom",
+        "İkinci Dereceden Denklemler", "Parabol", "Eşitsizlikler", "Limit",
+        "Sağ Sol Limit - Limit Özellikleri", "Parçalı Fonksiyon Limitleri", "Limitte Belirsizlik",
+        "Süreklilik", "Türev", "Ortalama Değişim Oranı", "Türevin Geometrik Tanımı - Türev Alma Kuralları",
+        "Sağdan Soldan Türev", "Türev Süreklilik İlişkisi", "Türevin Fiziksel Yorumu",
+        "Rolle Teoremi ve Ortalama Değer Teoremi", "Art. Azalan Fonk(Türevle İlişkisi)",
+        "Ekstremum Noktalama Max Min", "Polinom Fonksiyonlarının Grafiğ. Çizilmesi",
+        "Türevin Geometrik Yorumu", "Maksimum ve Minimum Problemleri", "İntegral",
+        "Diferansiyel", "İntegralin Özellikleri ve İntegral Alma Kuralları",
+        "Değişken Değiştirme Yöntemi", "Belirli İntegral ve Özellikleri",
+        "Parçalı Fonksiyonların İntegrali", "Rieman Toplamı", "İntegralde Alan Bulma"
+    ],
+    "GEOMETRİ": [
+        "Doğruda Açılar", "Üçgende Açılar", "Dik Üçgen", "İkizkenar Üçgen", "Eşkenar Üçgen",
+        "Üçgende Alan", "Açıortay", "Kenarortay", "Üçgende Benzerlik", "Açı-Kenar Bağıntıları",
+        "Çokgenler", "Dörtgenler", "Deltoid", "Paralelkenar", "Eşkenar Dörtgen", "Dikdörtgen",
+        "Kare", "Yamuk", "Çemberde Açı", "Çemberde Uzunluk", "Dairede Alan", "Katı Cisimler",
+        "Nokt. Analitik İncelenmesi", "Doğr. Analitik İncelenmesi", "Dönüşümlerle Geometri",
+        "Çembr. Analitik İncelenmesi"
+    ],
+    "TYT FİZİK": [
+        "Fiziğin Doğası", "Madde ve Özellikleri", "Kaldırma Kuvveti", "Basınç", "Isı Sıcaklık",
+        "Genleşme", "Doğrusal Hareket", "Newtn Hrkt Yasaları (Dinamik)", "Atışlar", "Aydınlanma",
+        "Gölge", "Düzlem Ayna", "Küresel Aynalar", "Renkler", "Kırılma", "Mercekler",
+        "Temel Dalga Bilgileri ve Ses Dalgası", "Yay Dalgaları", "Su Dalgaları",
+        "Elektrostatik-Coulomb Kuvveti", "Elektrik Akımı Devreler", "Manyetizma (Mıknatıs, M. Alan)"
+    ],
+    "AYT FİZİK": [
+        "Vektör-Kuvvet", "Denge-Tork", "Kütle Merkezi", "Basit Makinalar", "Doğrusal Hareket",
+        "Bağıl Hareket - Nehir Prb", "Newtn Hrkt Yasaları (Dinamik)", "Atışlar", "İş-Güç-Enerji",
+        "İtme Momentum", "Düzgün Çembersel Hareket", "Basit Harmonik Hareket", "Açısal Momentum",
+        "Genel Çekim-Kepler Yasaları", "Su Dalgaları Girişim", "Işık Teorileri",
+        "Elektrostatik-Coulomb Kuvveti", "Elektriksel Alan", "Elektriksel Potansiyel İş Levhalar",
+        "Kondansatörler", "Manyetik Kuvvet, İnd. Özind.", "Alternatif Akım Devreleri",
+        "Transformatör", "Fotoelektrik-Compton-De Broglie", "Atom Teorileri",
+        "Çekirdek Fiziği + Radyoaktivite", "Atomlardan Kuarklara", "E.M.D. - X-Işınları",
+        "Özel Görelilik", "Katı Hal Fiziği-Elektr. Devre Elemanları", "Modern Fiziğin Teknolojideki Uygulamaları"
+    ],
+    "TYT KİMYA": [
+        "Kimya Bilimi (Simya)", "Atom Yapısı", "Periyodik Cetvel", "Kimyanın Temel Kanunları",
+        "Kimyasal Tür.Arası Etk.(İyonik Kovalent - Zayıf Bağ)", "Mol Kavramı", "Kimyasal Tepk. Denklemleri",
+        "Kimyasal Hesaplamalar", "Maddenin Halleri", "Karışımlar - Karışımların Ayrılması",
+        "Asit - Baz - Tuz", "Kimya Her Yerde"
+    ],
+    "AYT KİMYA": [
+        "Modern Atom Teorisi", "Periyodik Sistem ve Özk.", "Kimya ve Elektrik Redoks",
+        "Elektrokimyasal Piller + Elektroliz", "Gaz Yasaları İdeal Gaz Denk.", "Gaz Karışımları, Kısmi Basınç",
+        "Gerçek Gaz Su Üst. Toplanma", "Çözeltiler", "Karışımlar - Karışımların Ayrılması",
+        "Kimyasal Tep. Enerji", "Kimyasal Tep. Hız", "Kimyasal Tep. Denge", "Dengeyi Etkileyen Faktörler",
+        "Sulu Çözeltilerde Asit Baz Deng", "Çözünme - Çökelme Dengeleri", "Karbon Kimyasına Giriş",
+        "Organik Bileşikler Hidrokarbonlar", "Aromatik Bileşikler", "Fonksiyonel Gruplar 1-2", "Hayatımızda Kimya"
+    ],
+    "TYT BİYOLOJİ": [
+        "Canlıların Ortak Özellikleri", "Can. Temel Bil.-İnorganik Bileşikler", "Organik Bileşikler",
+        "Enzim ve Nükleik Asitler", "Hücre", "Hücre Zarından Madde Geçişleri", "Organeller",
+        "Canlıların Sınıflandırılması", "Virüsler, Bakteriler ve Arkeler", "Protista ve Mantarlar",
+        "Bitkiler Hayvanlar", "Mitoz Bölünme", "Eşeysiz Üreme", "Mayoz Bölünme", "Eşeyli Üreme",
+        "Kalıtımın Esas İlkeleri", "Çaprazlamalar", "Eksik ve Eş Baskınlık - Pleiotropi - Çok Alellilik-Kan Grupları",
+        "Eşeye Bağlı Kalıtım - Kalıtsal Çeşitlilik", "Ekolojik Kavramlar", "Canlıların Beslenme İlişkileri",
+        "Besin Zinciri Enerji Akışı", "Madde Döngüleri", "Güncel Çevre Sorunları"
+    ],
+    "AYT BİYOLOJİ": [
+        "Sinir Sistemi", "Merkezi Sinir Sistemi", "Endokrin Sistem(Hormon Özellikleri-Hipofiz Bezi Hormonları)",
+        "Tiroid Bezi - Böbrek Üstü Bezler, Eşeysel Hormonlar", "Duyu Organları (Göz-Kulak)", "Burun - Dil - Deri",
+        "Destek ve Hareket Sistemi (İskelet)", "Kaslar - Kasların Çalışması", "Sindirim Sistemi (Organlar)",
+        "Besinlerin Sindirimi", "Dolaşım Sistemi (Kalp)", "Kan Damarları, Kan - Doku", "Bağışıklık Sistemi",
+        "Solunum Sistemi (Organlar)", "Soluk Alıp Verme - Solunum Gazlarının Taşınması", "Üriner Sistem(Organlar)",
+        "İdrarın Oluşumu", "Üreme Sistemi", "Döllenme,Büyüme ve Gelişme", "Komünite -Popülasyon Ekolojisi",
+        "Nükleik Asitler - Prot", "Protein Sentezi-Biyoteknoloji", "Fotosentez", "Solunum",
+        "Bitki Biyolojisi(Bitkisel Organlar)", "Bitkilerde Hareket, Hormonlar, Beslenme"
+    ]
 }
 
 FLASHCARD_DERSLER = list(CIZELGE_DETAY.keys())
+ODEV_DERSLERI = list(CIZELGE_DETAY.keys())
 
 # --- 🛡️ GÜVENLİ DOSYA OKUMA ---
 def safe_read_csv(file_path, columns):
@@ -67,12 +145,13 @@ def make_hashes(p): return hashlib.sha256(str.encode(p)).hexdigest()
 
 def init_files():
     if not os.path.exists(VIDEO_FOLDER): os.makedirs(VIDEO_FOLDER)
+    if not os.path.exists(FLASHCARD_IMG_FOLDER): os.makedirs(FLASHCARD_IMG_FOLDER)
     
     safe_read_csv(WORK_DATA, ["username", "Tarih", "Ders", "Konu", "Soru", "Süre"])
     safe_read_csv(TASKS_DATA, ["id", "username", "book", "ders", "konu", "gorev", "durum", "tarih"])
     safe_read_csv(BOOKS_DATA, ["username", "book_name", "category", "status"])
     safe_read_csv(GOALS_DATA, ["username", "date", "target_min", "status"])
-    safe_read_csv(SMART_FLASHCARD_DATA, ["username", "ders", "soru", "cevap", "tarih"])
+    safe_read_csv(SMART_FLASHCARD_DATA, ["username", "ders", "soru", "cevap", "tarih", "image_path"])
     safe_read_csv(TRIALS_DATA, ["username", "tarih", "tur", "yayin", "net", "detay"])
     safe_read_csv(VIDEO_DATA, ["baslik", "dosya_yolu"])
 
@@ -125,15 +204,14 @@ def render_floating_timer():
         </style>
         """, unsafe_allow_html=True)
 
-
-# --- 🎨 CSS: GENEL ---
+# --- 🎨 CSS: GENEL & NEON PARLAMALAR ---
 st.markdown("""
 <style>
     .stApp { background-color: #02040a; color: #e2e8f0; font-family: 'Inter', sans-serif; }
     header, footer, #MainMenu, .stDeployButton, div[class^='viewerBadge'] {display: none !important;}
     
-    /* Sayfa sonu boşluğu - butonların dibe yapışmasını engeller */
-    .block-container { padding-top: 1rem !important; padding-bottom: 150px !important; }
+    /* EN ALTTA DEV BOŞLUK - HİÇBİR ŞEY DİBE YAPIŞAMAZ */
+    .block-container { padding-top: 1rem !important; padding-bottom: 250px !important; }
 
     .dashboard-card {
         border-radius: 20px; padding: 20px; color: white;
@@ -152,15 +230,26 @@ st.markdown("""
     .card-blue { background: linear-gradient(135deg, #00c6ff, #0072ff); }
     .card-dark { background: linear-gradient(135deg, #434343, #000000); }
     
+    /* NEON INPUT & BUTON EFEKTLERİ */
     div.stTextInput > div > div > input, div.stSelectbox > div > button, div.stNumberInput > div > div > input { 
-        background-color: #1e293b; color: white; border: 1px solid #334155; 
+        background-color: #0f172a !important; 
+        color: white !important; 
+        border: 2px solid #1e293b !important; 
+        transition: all 0.3s ease-in-out !important;
+        border-radius: 8px !important;
     }
+    div.stTextInput > div > div > input:focus, div.stSelectbox > div > button:focus, div.stNumberInput > div > div > input:focus {
+        box-shadow: 0 0 15px rgba(59, 130, 246, 0.7) !important;
+        border-color: #3b82f6 !important;
+    }
+
     div.stButton > button { 
         background-color: transparent; color: white; border: 1px solid rgba(255,255,255,0.2); 
         font-weight: bold; width: 100%; transition: 0.3s;
     }
     div.stButton > button:hover {
         background-color: #3b82f6; border-color: #3b82f6;
+        box-shadow: 0 0 15px rgba(59, 130, 246, 0.7);
     }
 
     .teams-link {
@@ -192,21 +281,29 @@ if st.session_state.page == 'landing' and not st.session_state.logged_in:
     <style>
     div[data-testid="stTabs"] {
         background: rgba(15, 23, 42, 0.9);
-        /* Kutu alt boşluğu artırıldı (dibe yapışmasın diye) */
         padding: 30px 30px 45px 30px; 
         border-radius: 20px;
         border: 2px solid #3b82f6; 
         box-shadow: 0 0 40px rgba(59, 130, 246, 0.4);
     }
-    button[data-baseweb="tab"] {
+    
+    /* GİRİŞ YAP / ÜYE OL SEKME PARLAMASI */
+    div[data-testid="stTabs"] button[data-baseweb="tab"] {
         flex-grow: 1 !important;
         text-align: center !important;
         justify-content: center !important;
         font-size: 18px !important;
         font-weight: 800 !important;
+        color: #94a3b8 !important;
+        transition: 0.3s !important;
+    }
+    div[data-testid="stTabs"] button[aria-selected="true"] {
+        color: #60a5fa !important;
+        text-shadow: 0 0 10px rgba(96, 165, 250, 0.8) !important;
     }
     div[data-baseweb="tab-highlight"] {
         background-color: #3b82f6 !important;
+        box-shadow: 0 0 10px #3b82f6 !important;
     }
     div[data-baseweb="tab-border"] {
         background-color: transparent !important;
@@ -214,7 +311,7 @@ if st.session_state.page == 'landing' and not st.session_state.logged_in:
     </style>
     """, unsafe_allow_html=True)
 
-    st.markdown("<h1 style='text-align:center; font-size: 70px; color:#3b82f6; margin-bottom:10px; text-shadow: 0 0 20px rgba(59,130,246,0.5);'>EMİR ÖZKÖK</h1>", unsafe_allow_html=True)
+    st.markdown("<h1 style='text-align:center; font-size: 70px; color:#3b82f6; margin-bottom:10px; text-shadow: 0 0 20px rgba(59,130,246,0.6);'>EMİR ÖZKÖK</h1>", unsafe_allow_html=True)
     
     st.markdown("""
     <div style='text-align:center; margin-bottom: 40px; padding: 0 10%;'>
@@ -239,19 +336,19 @@ if st.session_state.page == 'landing' and not st.session_state.logged_in:
         if photo_path:
             with open(photo_path, "rb") as image_file: encoded_string = base64.b64encode(image_file.read()).decode()
             st.markdown(f'''
-            <div style="width:100%; max-width: 420px; margin: 0 auto; aspect-ratio: 4/5; border-radius:20px; border:2px solid #3b82f6; box-shadow: 0 0 30px rgba(59, 130, 246, 0.3); overflow:hidden;">
+            <div style="width:100%; max-width: 420px; margin: 0 auto; aspect-ratio: 4/5; border-radius:20px; border:2px solid #3b82f6; box-shadow: 0 0 30px rgba(59, 130, 246, 0.4); overflow:hidden;">
                 <img src="data:image/png;base64,{encoded_string}" style="width:100%; height:100%; object-fit:cover; object-position: top;">
             </div>
             ''', unsafe_allow_html=True)
 
     with col2:
-        tab1, tab2 = st.tabs(["🔐 GİRİŞ YAP", "📝 KAYIT OL"])
+        tab1, tab2 = st.tabs(["🔐 GİRİŞ YAP", "📝 ÜYE OL"])
         
         with tab1:
             st.markdown("<br>", unsafe_allow_html=True)
             u = st.text_input("Kullanıcı Adı", key="l_u")
             p = st.text_input("Şifre", type='password', key="l_p")
-            st.markdown("<br>", unsafe_allow_html=True) # Butonun üstüne boşluk eklendi
+            st.markdown("<br>", unsafe_allow_html=True)
             if st.button("GİRİŞ YAP", use_container_width=True):
                 try:
                     ud = safe_read_csv(USER_DATA, ["username", "password", "ad", "is_coaching"])
@@ -275,7 +372,7 @@ if st.session_state.page == 'landing' and not st.session_state.logged_in:
             rh = st.selectbox("Hedefin (Bölüm)", ["Sayısal", "Eşit Ağırlık", "Sözel", "Dil"], key="r_h")
             rt = st.text_input("Telefon", key="r_t", max_chars=11)
             rm = st.text_input("E-posta", key="r_m")
-            st.markdown("<br>", unsafe_allow_html=True) # Butonun üstüne boşluk eklendi
+            st.markdown("<br>", unsafe_allow_html=True)
             if st.button("KAYDI TAMAMLA", use_container_width=True):
                 if not n or not ru or not rp: st.error("Boş alan bırakma.")
                 else:
@@ -288,7 +385,6 @@ if st.session_state.page == 'landing' and not st.session_state.logged_in:
                         else: st.error("Kullanıcı adı alınmış.")
                     except Exception as e: st.error(f"Kayıt hatası: {e}")
         
-        # --- GÜNCELLENMİŞ MARKA METNİ ---
         st.markdown("""
         <div style="text-align: center; margin-top: 40px; padding: 25px; background: rgba(16, 185, 129, 0.1); border-radius: 15px; border: 1px dashed rgba(16, 185, 129, 0.4);">
             <p style="color: #cbd5e1; font-size: 15px; margin-bottom: 15px; font-weight: 500;">Hazır çalışma programları, grup rehberlik etkinlikleri, derece yaptıran taktikler ve <b>Emir Özkök'e doğrudan soru sorma şansı</b> için topluluğa da katıl 👇</p>
@@ -298,7 +394,7 @@ if st.session_state.page == 'landing' and not st.session_state.logged_in:
         </div>
         """, unsafe_allow_html=True)
         
-        st.markdown("<br><br><br>", unsafe_allow_html=True) # Sayfa sonu rahatlaması
+        st.markdown("<br><br><br><br><br>", unsafe_allow_html=True)
 
 # ==========================================
 # 2. DASHBOARD
@@ -357,7 +453,6 @@ elif st.session_state.logged_in and st.session_state.page == 'dashboard':
         st.markdown("<br>", unsafe_allow_html=True)
         r2_c1, r2_c2 = st.columns(2)
         with r2_c1:
-            # GÜNCELLENMİŞ MARKA METNİ
             st.markdown('''
             <a href="https://teams.live.com/l/community/FEA37u2Ksl3MjtjcgY" target="_blank" style="text-decoration:none;">
                 <div class="dashboard-card card-dark">
@@ -380,7 +475,7 @@ elif st.session_state.logged_in and st.session_state.page == 'dashboard':
             with a3:
                 if st.button("💾 YEDEKLE / GERİ YÜKLE"): go_to('admin_backup')
                 
-    st.markdown("<br><br><br>", unsafe_allow_html=True)
+    st.markdown("<br><br><br><br><br>", unsafe_allow_html=True)
 
 # ==========================================
 # 3. İÇ SAYFALAR
@@ -413,7 +508,7 @@ elif st.session_state.logged_in:
                     st.session_state.realname = na
                     st.success("Bilgiler güncellendi!"); time.sleep(1); st.rerun()
         except Exception as e: st.error(f"Ayar hatası: {e}")
-        st.markdown("<br><br><br>", unsafe_allow_html=True)
+        st.markdown("<br><br><br><br><br>", unsafe_allow_html=True)
 
     elif st.session_state.page == 'admin_users':
         st.header("👥 Öğrenci Yönetimi")
@@ -428,7 +523,7 @@ elif st.session_state.logged_in:
             st.success("Veriler güncellendi!")
             time.sleep(1); st.rerun()
             
-        st.markdown("<br><br><br>", unsafe_allow_html=True)
+        st.markdown("<br><br><br><br><br>", unsafe_allow_html=True)
 
     elif st.session_state.page == 'stats':
         st.header("📊 Analiz ve Veri Girişi")
@@ -499,7 +594,6 @@ elif st.session_state.logged_in:
         with tab_deneme:
             st.subheader("🏆 Deneme Sınavı Ekle")
             
-            # SADECE TYT VE AYT SAYISAL
             t_tur = st.selectbox("Deneme Türü Seç:", ["TYT", "AYT Sayısal", "Branş Denemesi"])
             
             with st.form("trial_form"):
@@ -508,7 +602,7 @@ elif st.session_state.logged_in:
                 t_yayin = c_t2.text_input("Yayın Evi (Örn: 345, Bilgi Sarmal)")
                 
                 st.markdown("---")
-                st.markdown("#### 📝 Doğru ve Yanlışlarını Gir (Sıralama Olayı Kaldırıldı)")
+                st.markdown("#### 📝 Doğru ve Yanlışlarını Gir (Netler Otomatik Hesaplanır)")
                 
                 if t_tur == "TYT":
                     c_n1, c_n2, c_n3, c_n4 = st.columns(4)
@@ -593,7 +687,7 @@ elif st.session_state.logged_in:
                 else: st.info("Henüz deneme kaydı yok.")
             except Exception as e: st.error(f"Veri yok: {e}")
             
-            st.markdown("<br><br><br>", unsafe_allow_html=True)
+            st.markdown("<br><br><br><br><br>", unsafe_allow_html=True)
 
         with tab_grafik:
             try:
@@ -631,7 +725,7 @@ elif st.session_state.logged_in:
                 else: st.info("Henüz veri yok.")
             except Exception as e: st.error(f"Veri okuma hatası: {e}")
             
-            st.markdown("<br><br><br>", unsafe_allow_html=True)
+            st.markdown("<br><br><br><br><br>", unsafe_allow_html=True)
 
     elif st.session_state.page == 'kronometre':
         st.header("⏱️ Odaklanma & Hedef")
@@ -706,7 +800,7 @@ elif st.session_state.logged_in:
             if st.session_state.timer_active:
                 time.sleep(1); st.rerun()
                 
-        st.markdown("<br><br><br>", unsafe_allow_html=True)
+        st.markdown("<br><br><br><br><br>", unsafe_allow_html=True)
 
     elif st.session_state.page == 'admin_cizelge':
         st.header("Ödev Atama Merkezi")
@@ -741,21 +835,20 @@ elif st.session_state.logged_in:
                 c1, c2 = st.columns(2)
                 s_kitap = c1.selectbox("Kitap", bks)
                 
-                # OTOMATİK DERS SEÇİMİ SİSTEMİ (Redundancy kaldırıldı)
                 secilen_ders = user_bks[user_bks['book_name'] == s_kitap].iloc[0]['category']
-                c2.info(f"📚 Kayıtlı Ders: **{secilen_ders}**")
+                c2.info(f"📚 Sistem bu kitabın **{secilen_ders}** kitabı olduğunu algıladı.")
                 
-                s_konu = st.selectbox("Konu", CIZELGE_DETAY.get(secilen_ders, ["Genel"]))
+                s_konu = st.selectbox("Konu Seçin", CIZELGE_DETAY.get(secilen_ders, ["Genel"]))
                 s_detay = st.text_input("Detay (Test No / Sayfa)")
                 st.markdown("<br>", unsafe_allow_html=True)
                 if st.button("ÖDEVİ GÖNDER", use_container_width=True):
                     td = safe_read_csv(TASKS_DATA, ["id", "username", "book", "ders", "konu", "gorev", "durum", "tarih"])
                     new_task = pd.DataFrame([[int(time.time()), target, s_kitap, secilen_ders, s_konu, s_detay, "Yapılmadı", str(date.today())]], columns=td.columns)
                     pd.concat([td, new_task], ignore_index=True).to_csv(TASKS_DATA, index=False)
-                    st.success("Ödev gönderildi!")
+                    st.success("Ödev başarıyla gönderildi!")
             else: st.warning("Önce öğrenciye bir kitap eklemelisin.")
         else: st.warning("Hiç koçluk öğrencisi yok veya filtre hatası. 'Öğrenci Listesi'nden yetki ver.")
-        st.markdown("<br><br><br>", unsafe_allow_html=True)
+        st.markdown("<br><br><br><br><br>", unsafe_allow_html=True)
 
     elif st.session_state.page == 'my_tasks':
         st.header("Ödevlerim")
@@ -779,37 +872,61 @@ elif st.session_state.logged_in:
                             st.write(f"Kitap: {r['book']} | Görev: {r['gorev']}")
                             st.caption(f"Veriliş Tarihi: {r['tarih']}")
         except: st.info("Sistem hazırlanıyor.")
-        st.markdown("<br><br><br>", unsafe_allow_html=True)
+        st.markdown("<br><br><br><br><br>", unsafe_allow_html=True)
 
+    # --- 🧠 YENİ FLASHCARD KISMI (FOTOĞRAF & SEÇMELİ DERS & LİSTE GÖRÜNÜMÜ) ---
     elif st.session_state.page == 'flashcards':
         st.header("🧠 Akıllı Kartlar")
-        t1, t2, t3 = st.tabs(["➕ Kart Ekle", "📖 Serbest Çalış", "🚀 Test Et (Quiz)"])
+        t1, t2, t3, t4 = st.tabs(["➕ Kart Ekle", "📖 Serbest Çalış", "🚀 Test Et (Quiz)", "📋 Tümünü Gör (Hızlı Tekrar)"])
         
         with t1:
             st.subheader("Yeni Bilgi Ekle")
-            d = st.selectbox("Ders", FLASHCARD_DERSLER)
+            d = st.selectbox("Ders Seç", FLASHCARD_DERSLER)
             q = st.text_input("Soru (Ön Yüz)")
             a = st.text_input("Cevap (Arka Yüz)")
+            
+            uploaded_file = st.file_uploader("Soru Fotoğrafı Ekle (İsteğe Bağlı - PNG/JPG)", type=["png", "jpg", "jpeg"])
+            
             st.markdown("<br>", unsafe_allow_html=True)
-            if st.button("Kartı Ekle"):
-                fd = safe_read_csv(SMART_FLASHCARD_DATA, ["username", "ders", "soru", "cevap", "tarih"])
-                pd.concat([fd, pd.DataFrame([[st.session_state.username,d,q,a,str(date.today())]], columns=fd.columns)]).to_csv(SMART_FLASHCARD_DATA, index=False)
-                st.success("Kart başarıyla eklendi!")
+            if st.button("Kartı Ekle", type="primary"):
+                if q and a:
+                    img_path = ""
+                    if uploaded_file is not None:
+                        img_filename = f"flashcard_{st.session_state.username}_{int(time.time())}.png"
+                        img_path = os.path.join(FLASHCARD_IMG_FOLDER, img_filename)
+                        with open(img_path, "wb") as f:
+                            f.write(uploaded_file.getbuffer())
+                            
+                    fd = safe_read_csv(SMART_FLASHCARD_DATA, ["username", "ders", "soru", "cevap", "tarih", "image_path"])
+                    pd.concat([fd, pd.DataFrame([[st.session_state.username, d, q, a, str(date.today()), img_path]], columns=fd.columns)]).to_csv(SMART_FLASHCARD_DATA, index=False)
+                    st.success("Kart başarıyla eklendi!")
+                else:
+                    st.error("Lütfen en azından soru ve cevap alanlarını doldur.")
 
         with t2:
             st.subheader("Serbest Kart Okuma")
+            
+            filter_opt = st.selectbox("Çalışılacak Dersi Seç", ["Tüm Dersler"] + FLASHCARD_DERSLER, key="free_filter")
+            
             try:
                 if 'free_card_idx' not in st.session_state: st.session_state.free_card_idx = 0
                 if 'free_show_ans' not in st.session_state: st.session_state.free_show_ans = False
 
-                fd = safe_read_csv(SMART_FLASHCARD_DATA, ["username", "ders", "soru", "cevap", "tarih"])
+                fd = safe_read_csv(SMART_FLASHCARD_DATA, ["username", "ders", "soru", "cevap", "tarih", "image_path"])
                 my = fd[fd['username']==st.session_state.username]
+                
+                if filter_opt != "Tüm Dersler":
+                    my = my[my['ders'] == filter_opt]
                 
                 if not my.empty:
                     if st.session_state.free_card_idx >= len(my): st.session_state.free_card_idx = 0
                     row = my.iloc[st.session_state.free_card_idx]
                     
-                    st.markdown(f"<div class='dashboard-card'><h2>{row['soru']}</h2></div>", unsafe_allow_html=True)
+                    st.markdown(f"<div class='dashboard-card'><h5 style='color:#94a3b8;'>{row['ders']}</h5><h2>{row['soru']}</h2></div>", unsafe_allow_html=True)
+                    
+                    if pd.notna(row.get('image_path')) and str(row.get('image_path')) != "":
+                        if os.path.exists(str(row['image_path'])):
+                            st.image(str(row['image_path']), use_container_width=True)
                     
                     if st.session_state.free_show_ans: 
                         st.success(f"**Cevap:** {row['cevap']}")
@@ -822,12 +939,14 @@ elif st.session_state.logged_in:
                         st.session_state.free_card_idx += 1
                         st.session_state.free_show_ans = False
                         st.rerun()
-                else: st.warning("Henüz kart eklemedin.")
+                else: 
+                    st.warning("Bu derse ait kart bulunamadı.")
             except Exception as e: 
-                st.error("Lütfen ilk kartınızı ekleyin.")
+                st.error("Kayıtlar aranıyor...")
 
         with t3:
-            st.subheader("Quizlet Modu (Öğrenene Kadar Sorar)")
+            st.subheader("Quizlet Modu (Öğrenene Kadar Karışık Sorar)")
+            
             if 'test_queue' not in st.session_state:
                 st.session_state.test_queue = []
                 st.session_state.test_active = False
@@ -835,27 +954,38 @@ elif st.session_state.logged_in:
                 st.session_state.test_user_ans = "" 
 
             if not st.session_state.test_active:
-                st.info("Kendi eklediğin kartlarla test başlar. Bilemediğin kartlar destenin sonuna atılır, öğrenene kadar karşına çıkar.")
+                test_filter = st.selectbox("Test Edilecek Dersi Seç", ["Tüm Dersler"] + FLASHCARD_DERSLER, key="test_filter")
+                st.info("Seçtiğin dersin kartları RASTGELE karıştırılarak önüne gelecektir. Bilemediğin kartlar destenin sonuna atılır.")
+                
                 if st.button("🚀 Testi Başlat", use_container_width=True):
-                    fd = safe_read_csv(SMART_FLASHCARD_DATA, ["username", "ders", "soru", "cevap", "tarih"])
+                    fd = safe_read_csv(SMART_FLASHCARD_DATA, ["username", "ders", "soru", "cevap", "tarih", "image_path"])
                     my = fd[fd['username']==st.session_state.username]
+                    if test_filter != "Tüm Dersler":
+                        my = my[my['ders'] == test_filter]
+                        
                     if not my.empty:
-                        st.session_state.test_queue = my.to_dict('records')
+                        my_list = my.to_dict('records')
+                        random.shuffle(my_list) # KARIŞTIRMA İŞLEMİ
+                        st.session_state.test_queue = my_list
                         st.session_state.test_active = True
                         st.session_state.test_show_ans = False
                         st.session_state.test_user_ans = ""
                         st.rerun()
-                    else: st.warning("Testi başlatmak için önce kart eklemelisin!")
+                    else: st.warning("Bu derse ait test edilecek kart yok!")
             else:
                 if len(st.session_state.test_queue) == 0:
-                    st.success("🎉 TEBRİKLER! Tüm kartları başarıyla öğrendin!")
-                    if st.button("🔄 Testi Yeniden Başlat"):
+                    st.success("🎉 TEBRİKLER! Seçtiğin tüm kartları başarıyla öğrendin!")
+                    if st.button("🔄 Yeni Test Başlat"):
                         st.session_state.test_active = False
                         st.rerun()
                 else:
                     current_card = st.session_state.test_queue[0]
-                    st.markdown(f"<div class='dashboard-card card-purple'><h2>{current_card['soru']}</h2></div>", unsafe_allow_html=True)
+                    st.markdown(f"<div class='dashboard-card card-purple'><h5 style='color:#cbd5e1;'>{current_card['ders']}</h5><h2>{current_card['soru']}</h2></div>", unsafe_allow_html=True)
                     
+                    if pd.notna(current_card.get('image_path')) and str(current_card.get('image_path')) != "":
+                        if os.path.exists(str(current_card['image_path'])):
+                            st.image(str(current_card['image_path']), use_container_width=True)
+                            
                     if not st.session_state.test_show_ans:
                         user_input = st.text_input("Cevabını Yaz:", key="quiz_input")
                         if st.button("Cevabı Kontrol Et", use_container_width=True):
@@ -889,13 +1019,37 @@ elif st.session_state.logged_in:
                             st.session_state.test_show_ans = False
                             st.session_state.test_user_ans = ""
                             st.rerun()
-        st.markdown("<br><br><br>", unsafe_allow_html=True)
+
+        with t4:
+            st.subheader("📋 Sınav Öncesi Hızlı Tekrar Listesi")
+            list_filter = st.selectbox("Ders Filtrele", ["Tüm Dersler"] + FLASHCARD_DERSLER, key="list_filter")
+            
+            try:
+                fd = safe_read_csv(SMART_FLASHCARD_DATA, ["username", "ders", "soru", "cevap", "tarih", "image_path"])
+                my = fd[fd['username']==st.session_state.username]
+                
+                if list_filter != "Tüm Dersler":
+                    my = my[my['ders'] == list_filter]
+                
+                if not my.empty:
+                    for i, r in my.iterrows():
+                        with st.expander(f"📌 {r['ders']} | Soru: {r['soru']}"):
+                            if pd.notna(r.get('image_path')) and str(r.get('image_path')) != "":
+                                if os.path.exists(str(r['image_path'])):
+                                    st.image(str(r['image_path']), width=300)
+                            st.success(f"**Cevap:** {r['cevap']}")
+                else:
+                    st.info("Görüntülenecek kart bulunamadı.")
+            except Exception:
+                st.info("Kayıtlar yükleniyor...")
+
+        st.markdown("<br><br><br><br><br>", unsafe_allow_html=True)
     
     elif st.session_state.page == 'admin_books':
         st.header("Öğrenci Kitapları")
         try: st.dataframe(safe_read_csv(BOOKS_DATA, ["username", "book_name", "category"]))
         except: st.write("Kitap yok")
-        st.markdown("<br><br><br>", unsafe_allow_html=True)
+        st.markdown("<br><br><br><br><br>", unsafe_allow_html=True)
 
     elif st.session_state.page == 'admin_backup':
         st.header("💾 YEDEKLEME VE GERİ YÜKLEME MERKEZİ")
@@ -903,7 +1057,7 @@ elif st.session_state.logged_in:
         c_down, c_up = st.columns(2)
         with c_down:
             st.subheader("⬇️ 1. Verileri İndir (Yedekle)")
-            files_to_download = [USER_DATA, TASKS_DATA, WORK_DATA, BOOKS_DATA, GOALS_DATA, TRIALS_DATA]
+            files_to_download = [USER_DATA, TASKS_DATA, WORK_DATA, BOOKS_DATA, GOALS_DATA, TRIALS_DATA, SMART_FLASHCARD_DATA]
             for f in files_to_download:
                 if os.path.exists(f):
                     with open(f, "rb") as file:
@@ -920,4 +1074,4 @@ elif st.session_state.logged_in:
                         df_upload.to_csv(original_name, index=False)
                         st.success(f"✅ {original_name} başarıyla geri yüklendi! Sayfayı yenile.")
                     except Exception as e: st.error(f"Hata: {e}")
-        st.markdown("<br><br><br>", unsafe_allow_html=True)
+        st.markdown("<br><br><br><br><br>", unsafe_allow_html=True)

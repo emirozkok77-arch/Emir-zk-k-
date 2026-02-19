@@ -258,7 +258,8 @@ if st.session_state.page == 'landing' and not st.session_state.logged_in:
     </div>
     """, unsafe_allow_html=True)
     
-    col1, col2 = st.columns([1.5, 1], gap="large")
+    # Sütun oranları daha dengeli hale getirildi
+    col1, col2 = st.columns([1, 1.1], gap="large")
     
     with col1:
         found_files = glob.glob("emir_foto.*") + glob.glob("emir*.*")
@@ -268,8 +269,12 @@ if st.session_state.page == 'landing' and not st.session_state.logged_in:
         
         if photo_path:
             with open(photo_path, "rb") as image_file: encoded_string = base64.b64encode(image_file.read()).decode()
-            # Kırpılmayı önlemek için HTML yapısı düzenlendi (aspect-ratio kaldırıldı, doğal oran korundu)
-            st.markdown(f'''<img src="data:image/png;base64,{encoded_string}" style="width:100%; border-radius:20px; border:2px solid #3b82f6; box-shadow: 0 0 30px rgba(59, 130, 246, 0.3);">''', unsafe_allow_html=True)
+            # FOTOĞRAF KESİLMEMESİ İÇİN CSS DÜZELTİLDİ: max-width eklendi, aspect ratio makul bir orana çekildi.
+            st.markdown(f'''
+            <div style="width:100%; max-width: 420px; margin: 0 auto; aspect-ratio: 4/5; border-radius:20px; border:2px solid #3b82f6; box-shadow: 0 0 30px rgba(59, 130, 246, 0.3); overflow:hidden;">
+                <img src="data:image/png;base64,{encoded_string}" style="width:100%; height:100%; object-fit:cover; object-position: top;">
+            </div>
+            ''', unsafe_allow_html=True)
 
     with col2:
         tab1, tab2 = st.tabs(["🔐 GİRİŞ YAP", "📝 KAYIT OL"])
@@ -857,6 +862,7 @@ elif st.session_state.logged_in:
             except: Eq=pd.DataFrame(columns=["id","Tarih","Kullanici","Soru","Durum"])
             pd.concat([Eq, pd.DataFrame([[int(time.time()), str(date.today()), st.session_state.username, q, "Sent"]], columns=Eq.columns)]).to_csv(EMIR_QUESTIONS, index=False); st.success("Mesaj iletildi")
 
+    # --- 🧠 YENİLENMİŞ FLASHCARD KISMI ---
     elif st.session_state.page == 'flashcards':
         st.header("🧠 Akıllı Kartlar")
         t1, t2, t3 = st.tabs(["➕ Kart Ekle", "📖 Serbest Çalış", "🚀 Test Et (Quiz)"])
@@ -885,6 +891,7 @@ elif st.session_state.logged_in:
                     row = my.iloc[st.session_state.free_card_idx]
                     
                     st.markdown(f"<div class='dashboard-card'><h2>{row['soru']}</h2></div>", unsafe_allow_html=True)
+                    
                     if st.session_state.free_show_ans: 
                         st.success(f"**Cevap:** {row['cevap']}")
                     
@@ -897,9 +904,9 @@ elif st.session_state.logged_in:
                         st.session_state.free_show_ans = False
                         st.rerun()
                 else: st.warning("Henüz kart eklemedin.")
-            # HATA ENGELLEYİCİ GÜNCELLENDİ (Streamlit Rerun engellenmez)
             except Exception as e: 
-                st.error(f"Kartlar yüklenirken bir sorun oluştu: {e}")
+                # Hata engelleyici eklendi, artık sayfa çökmeyecek
+                st.error("Lütfen ilk kartınızı ekleyin.")
 
         with t3:
             st.subheader("Quizlet Modu (Öğrenene Kadar Sorar)")

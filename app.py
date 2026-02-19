@@ -925,10 +925,82 @@ elif st.session_state.logged_in:
             user_tasks = td[td['username'] == target].copy()
             user_work = wd[wd['username'] == target].copy()
             
+            user_tasks['tarih_dt'] = pd.to_datetime(user_tasks['tarih'], errors='coerce')
+            user_work['Tarih_dt'] = pd.to_datetime(user_work['Tarih'], errors='coerce')
+            
+            yedi_gun_once = pd.Timestamp(date.today() - timedelta(days=7))
+            
+            # --- 1. EFOR KARNESİ (SON 7 GÜN) ---
+            st.markdown("### 📊 Son 7 Günün Efor Karnesi")
+            recent_work = user_work[user_work['Tarih_dt'] >= yedi_gun_once].copy()
+            
+            recent_work['Soru'] = pd.to_numeric(recent_work['Soru'], errors='coerce').fillna(0)
+            recent_work['Süre'] = pd.to_numeric(recent_work['Süre'], errors='coerce').fillna(0)
+            
+            last_7_q = recent_work['Soru'].sum()
+            last_7_time = recent_work['Süre'].sum()
+            
+            total_t = len(user_tasks)
+            done_t = len(user_tasks[user_tasks['durum'] == 'Tamamlandı'])
+            sadakat = (done_t / total_t * 100) if total_t > 0 else 0
+            
+            bekleyen_sayisi = len(user_tasks[user_tasks['durum'] == 'Yapılmadı'])
+            
+            m1, m2, m3, m4 = st.columns(4)
+            m1.metric("Son 7 Gün Çözülen Soru", int(last_7_q))
+            m2.metric("Son 7 Gün Çalışma Süresi", f"{int(last_7_time//60)}s {int(last_7_time%60)}dk")
+            m3.metric("Ödev Sadakati (Genel)", f"%{int(sadakat)}")
+            m4.metric("Aktif Bekleyen Ödev", bekleyen_sayisi)
+            
+            # --- DARBOĞAZ VE ALARMLAR ---
+            st.markdown("<br>", unsafe_allow_html=True)
+            if bekleyen_sayisi >= 5:
+                st.error(f"🚨 **DARBOĞAZ UYARISI:** Öğrencinin elinde eritmediği {bekleyen_sayisi} adet ödev birikmiş. Yeni ödev yüklemesi yapmadan önce stratejini gözden geçir!")
+            elif bekleyen_sayisi == 0 and total_t > 0:
+                st.success("🔥 **MÜKEMMEL:** Öğrenci tüm ödevlerini eritmiş, yeni görevlere tamamen aç!")
+                
+            st.markdown("---")
+            
+            # --- 2.5 ÖĞRENCİNİN GÜNLÜK SORU/SÜRE DÖKÜMÜ ---
+            st.markdown("### 🗓️ Günlük Soru ve Süre Dökümü (Detaylı)")
+            if not user_work.empty:
+                unique_dates = user_work['Tarih'].dropna().unique()
+                unique_dates = sorted(unique_dates, reverse=True)
+                
+                for d in unique_dates:
+                    day_data = user_work[user_work['Tarih'] == d].copy()
+                    day_data['Soru'] = pd.to_numeric(day_data['Soru'], errors='coerce').fillna(0)
+                    day_data['Süre'] = pd.to_numeric(day_data['Süre'], errors='coerce').fillna(0)
+                    
+                    toplam_soru = int(day_data['Soru'].sum())
+                    toplam_sure = int(day_data['Süre'].sum())
+                    
+                    saat = toplam_sure // 60
+                    dakika = toplam_sure % 60
+                    sure_metni = f"{saat} Sa {dakika} Dk" if toplam_sure > 0 else "Süre girilmedi"
+                    
+                    with st.expander(f"📅 {d} | Toplam: {toplam_soru} Soru | ⏱️ {sure_metni}"):
+                        display_df = day_data[['Ders', 'Soru', 'Süre']].copy()
+                        st.dataframe(display_df, use_container_width=True, hide_index=True)
+            else:
+                st.info("Öğrencinin henüz günlük çalışma (soru/süre) kaydı bulunmuyor.")
+                
+            st.markdown("---")
+            
+            # --- 3. GEÇEN HAFTANIN RÖNTGENİ ---
+            st.markdown("### 🗓️ Geçen Görüşmeden Bugüne (Son 7 Günlük Ödevler)")
+            recent_tasks = user_tasks[user_tasks['tarih_dt'] >= yedi_gun_once]
+            if not recent_tasks.empty:
+                display_rt = recent_tasks[['tarih', 'ders', 'konu', 'book', 'durum']].sort_values(by="tarih", ascending=False)
+                st.dataframe(display_rt, use_container_width=True, hide_index=True)
+            else:
+                st.info("Son 7 gün içinde verilmiş bir ödev kaydı bulunmuyor.")
+
+            st.markdown("---")
+            
             # --- 2. BİTİRİLEN KİTAPLAR MÜZESİ ---
             bd_all = safe_read_csv(BOOKS_DATA, ["username", "book_name", "category", "status"])
             
-            # Dosyada status yoksa veya boşsa Active yap
             if 'status' not in bd_all.columns: bd_all['status'] = "Active"
             bd_all['status'] = bd_all['status'].fillna("Active")
             bd_all.loc[bd_all['status'] == "", 'status'] = "Active"
@@ -946,7 +1018,6 @@ elif st.session_state.logged_in:
             with st.expander("➕ Yeni Kitap Tanımla (Önerileri Görmek İçin Tıklayın)"):
                 bc = st.selectbox("Ders Seç", list(CIZELGE_DETAY.keys()), key="new_book_lesson")
                 
-                # Önerileri Çek
                 oneriler = KITAP_ONERILERI.get(bc, [])
                 secenekler = ["Listeden Seç..."] + oneriler + ["✍️ Kendi Kitabımı Yazacağım (Manuel)"]
                 secilen_oneri = st.selectbox("Önerilen Kitaplar", secenekler)
@@ -955,7 +1026,6 @@ elif st.session_state.logged_in:
                 if secilen_oneri == "✍️ Kendi Kitabımı Yazacağım (Manuel)":
                     bn = st.text_input("Kitap Adını Yazın:")
                 elif secilen_oneri != "Listeden Seç...":
-                    # ÖĞRENCİ GÖRMESİN DİYE ZORLUK SEVİYESİNİ (Parantez içini) TEMİZLİYORUZ
                     bn = re.sub(r'\s*\([^)]*\)$', '', secilen_oneri)
                     
                 st.markdown("<br>", unsafe_allow_html=True)
@@ -987,7 +1057,6 @@ elif st.session_state.logged_in:
                 
                 secilen_ders = filter_ders 
                 
-                # KİTAP RÖNTGENİ
                 st.markdown(f"""
                 <div style='background: #0f172a; border: 1px solid #3b82f6; border-radius: 10px; padding: 20px; margin-top: 15px; margin-bottom: 25px;'>
                     <h4 style='color: #60a5fa; margin-top: 0;'>{s_kitap} ({secilen_ders})</h4>
@@ -1010,7 +1079,6 @@ elif st.session_state.logged_in:
                     
                 st.markdown("</div>", unsafe_allow_html=True)
                 
-                # MÜZE KONTROLÜ (Kitap bitti mi?)
                 if len(tum_konular) > 0 and len(tamamlananlar) >= len(tum_konular):
                     st.balloons()
                     st.success("🎉 İNANILMAZ! Öğrenci bu kitabın müfredatındaki tüm konuları bitirmiş!")
@@ -1019,7 +1087,6 @@ elif st.session_state.logged_in:
                         bd_all.to_csv(BOOKS_DATA, index=False)
                         st.rerun()
                 else:
-                    # NORMAL ÖDEV FORMU
                     konu_secenekleri = []
                     for k in tum_konular:
                         if k in tamamlananlar: konu_secenekleri.append(f"✅ {k} (Bitti)")

@@ -50,7 +50,7 @@ CIZELGE_DETAY = {
 FLASHCARD_DERSLER = list(CIZELGE_DETAY.keys())
 ODEV_DERSLERI = list(CIZELGE_DETAY.keys())
 
-# --- 🛡️ GÜVENLİ DOSYA OKUMA (EKSİK SÜTUNLARI OTOMATİK TAMAMLAR) ---
+# --- 🛡️ GÜVENLİ DOSYA OKUMA ---
 def safe_read_csv(file_path, columns):
     try:
         if not os.path.exists(file_path) or os.stat(file_path).st_size == 0:
@@ -58,7 +58,6 @@ def safe_read_csv(file_path, columns):
             df.to_csv(file_path, index=False)
             return df
         df = pd.read_csv(file_path)
-        # Eski dosyalarda eksik sütun varsa ekle (Çökme Koruması)
         for col in columns:
             if col not in df.columns:
                 df[col] = ""
@@ -467,11 +466,10 @@ elif st.session_state.logged_in:
                 if toplam_dk > 0:
                     df = safe_read_csv(WORK_DATA, ["username","Tarih","Ders","Konu","Soru","Süre"])
                     new_row = pd.DataFrame([[st.session_state.username, str(selected_date), "GENEL", "Günlük Süre", 0, toplam_dk]], columns=df.columns)
-                    pd.concat([df, new_row], ignore_index=True).to.csv(WORK_DATA, index=False)
+                    pd.concat([df, new_row], ignore_index=True).to_csv(WORK_DATA, index=False)
                     st.success(f"Toplam {saat} saat {dakika} dakika kaydedildi!")
                 else: st.warning("Süre girmedin.")
 
-        # --- YENİ EKLENEN DENEME SINAVI DİNAMİK ALANI ---
         with tab_deneme:
             st.subheader("🏆 Deneme Sınavı Ekle")
             
@@ -724,6 +722,7 @@ elif st.session_state.logged_in:
             except: Eq=pd.DataFrame(columns=["id","Tarih","Kullanici","Soru","Durum"])
             pd.concat([Eq, pd.DataFrame([[int(time.time()), str(date.today()), st.session_state.username, q, "Sent"]], columns=Eq.columns)]).to_csv(EMIR_QUESTIONS, index=False); st.success("Mesaj iletildi")
 
+    # --- 🧠 YENİLENMİŞ FLASHCARD KISMI (AKILLI KONTROL SİSTEMİ) ---
     elif st.session_state.page == 'flashcards':
         st.header("🧠 Akıllı Kartlar")
         t1, t2, t3 = st.tabs(["➕ Kart Ekle", "📖 Serbest Çalış", "🚀 Test Et (Quiz)"])
@@ -772,6 +771,7 @@ elif st.session_state.logged_in:
                 st.session_state.test_queue = []
                 st.session_state.test_active = False
                 st.session_state.test_show_ans = False
+                st.session_state.test_user_ans = "" # Öğrencinin verdiği cevabı tutmak için
 
             if not st.session_state.test_active:
                 st.info("Kendi eklediğin kartlarla test başlar. Bilemediğin kartlar destenin sonuna atılır, öğrenene kadar karşına çıkar.")
@@ -782,6 +782,7 @@ elif st.session_state.logged_in:
                         st.session_state.test_queue = my.to_dict('records')
                         st.session_state.test_active = True
                         st.session_state.test_show_ans = False
+                        st.session_state.test_user_ans = ""
                         st.rerun()
                     else: st.warning("Testi başlatmak için önce kart eklemelisin!")
             else:
@@ -795,24 +796,38 @@ elif st.session_state.logged_in:
                     st.markdown(f"<div class='dashboard-card card-purple'><h2>{current_card['soru']}</h2></div>", unsafe_allow_html=True)
                     
                     if not st.session_state.test_show_ans:
-                        st.text_input("Cevabını Yaz (Sadece kendini denemek için, zorunlu değil):", key="quiz_input")
+                        user_input = st.text_input("Cevabını Yaz:", key="quiz_input")
                         if st.button("Cevabı Kontrol Et", use_container_width=True):
+                            st.session_state.test_user_ans = user_input # Cevabı kaydet
                             st.session_state.test_show_ans = True
                             st.rerun()
                     else:
-                        st.info(f"💡 **Asıl Cevap:** {current_card['cevap']}")
-                        st.write("Kendini değerlendir:")
+                        # Otomatik Kontrol Sistemi
+                        gercek_cevap = str(current_card['cevap']).strip().lower()
+                        ogrenci_cevap = str(st.session_state.test_user_ans).strip().lower()
+                        
+                        if ogrenci_cevap == gercek_cevap:
+                            st.success(f"🎉 Doğru bildin, bravo! (Asıl Cevap: {current_card['cevap']})")
+                        else:
+                            if ogrenci_cevap == "":
+                                st.info(f"💡 **Asıl Cevap:** {current_card['cevap']}")
+                            else:
+                                st.error(f"❌ Yanlış bildin. Doğru cevap şuydu: **{current_card['cevap']}**")
+                        
+                        st.write("Kendini değerlendir (Emin misin?):")
                         c_yes, c_no = st.columns(2)
                         
                         if c_yes.button("✅ Bildim (Geç)", use_container_width=True):
                             st.session_state.test_queue.pop(0)
                             st.session_state.test_show_ans = False
+                            st.session_state.test_user_ans = ""
                             st.rerun()
                             
                         if c_no.button("❌ Bilemedim (Tekrar Sor)", use_container_width=True):
                             card_to_move = st.session_state.test_queue.pop(0)
                             st.session_state.test_queue.append(card_to_move)
                             st.session_state.test_show_ans = False
+                            st.session_state.test_user_ans = ""
                             st.rerun()
 
     elif st.session_state.page == 'admin_inbox':

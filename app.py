@@ -288,10 +288,10 @@ if st.session_state.page == 'landing' and not st.session_state.logged_in:
                         else: st.error("Kullanıcı adı alınmış.")
                     except Exception as e: st.error(f"Kayıt hatası: {e}")
         
-        # --- YENİ METİNLİ TOPLULUK BUTONU ---
+        # --- GÜNCELLENMİŞ MARKA METNİ ---
         st.markdown("""
         <div style="text-align: center; margin-top: 40px; padding: 25px; background: rgba(16, 185, 129, 0.1); border-radius: 15px; border: 1px dashed rgba(16, 185, 129, 0.4);">
-            <p style="color: #cbd5e1; font-size: 15px; margin-bottom: 15px; font-weight: 500;">Hazır çalışma programları, grup rehberlik etkinlikleri, derece yaptıran taktikler ve <b>bana doğrudan soru sorma şansı</b> için topluluğa da katıl 👇</p>
+            <p style="color: #cbd5e1; font-size: 15px; margin-bottom: 15px; font-weight: 500;">Hazır çalışma programları, grup rehberlik etkinlikleri, derece yaptıran taktikler ve <b>Emir Özkök'e doğrudan soru sorma şansı</b> için topluluğa da katıl 👇</p>
             <a href="https://teams.live.com/l/community/FEA37u2Ksl3MjtjcgY" target="_blank" class="teams-link">
                 🔥 KAZANANLARIN BAHANESİ OLMAZ (+50 ÜYE)
             </a>
@@ -357,12 +357,12 @@ elif st.session_state.logged_in and st.session_state.page == 'dashboard':
         st.markdown("<br>", unsafe_allow_html=True)
         r2_c1, r2_c2 = st.columns(2)
         with r2_c1:
-            # TEAMS YÖNLENDİRMESİ SADELEŞTİ (Soru Sor Kalktı, Topluluk Geldi)
+            # GÜNCELLENMİŞ MARKA METNİ
             st.markdown('''
             <a href="https://teams.live.com/l/community/FEA37u2Ksl3MjtjcgY" target="_blank" style="text-decoration:none;">
                 <div class="dashboard-card card-dark">
                     <h3>💬 TOPLULUĞA GİT</h3>
-                    <p>Bana Soru Sor</p>
+                    <p>Emir Özkök'e Soru Sor</p>
                 </div>
             </a>
             ''', unsafe_allow_html=True)
